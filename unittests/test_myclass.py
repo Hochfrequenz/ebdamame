@@ -1,4 +1,4 @@
-from mypackage.mymodule import MyClass
+from ebddocx2table.mymodule import MyClass
 
 
 class TestMyClass:

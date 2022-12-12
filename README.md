@@ -19,9 +19,9 @@ Once you scraped the data (using this package) you can plot it with [`ebdtable2g
 
 ## How to use this Repository on Your Machine (for development)
 
-Please follow the instructions in
-our [Python Template Repository](https://github.com/Hochfrequenz/python_template_repository#how-to-use-this-repository-on-your-machine)
-. And for further information, see the [Tox Repository](https://github.com/tox-dev/tox).
+Please follow the instructions in our
+[Python Template Repository](https://github.com/Hochfrequenz/python_template_repository#how-to-use-this-repository-on-your-machine).
+And for further information, see the [Tox Repository](https://github.com/tox-dev/tox).
 
 ## Contribute
 
