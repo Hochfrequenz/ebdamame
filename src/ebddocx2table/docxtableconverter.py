@@ -52,7 +52,12 @@ def _read_subsequent_step_cell(cell: _Cell) -> Tuple[bool, Optional[str]]:
 
 class _EbdSubRowPosition(Enum):
     """
-    describes the position of a subrow in the Docx Table
+    Describes the position of a subrow in the Docx Table.
+    Most rows in the EBD table have two subrows where each subrow denoted one "ja"/"nein" answer to the question in the
+    description column (left to the subrow). We use this enum to toggle upper➡lower➡upper➡lower ... when iterating
+    over the rows. In the end each EbdTableRow shall contain two EbdTableSubRows of which the first is an "UPPER" and
+    the second is a "LOWER" subrow. As soon as the "LOWER" subrow appeared we flush the two subrows into a EbdTableRow,
+    whenever the "UPPER" subrow appears, we reset the subrow list (see loop in convert_docx_table_to_ebd_table).
     """
 
     UPPER = 1  #: the upper sub row
