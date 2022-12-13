@@ -4,7 +4,7 @@ Contains high level functions to process .docx files
 import re
 from io import BytesIO
 from pathlib import Path
-from typing import Generator, Union
+from typing import Dict, Generator, Union
 
 from docx import Document  # type:ignore[import]
 from docx.oxml import CT_P, CT_Tbl  # type:ignore[import]
@@ -43,7 +43,8 @@ def _get_tables_and_paragaphs(document: Document) -> Generator[Union[Table, Para
             yield Table(item, document)
 
 
-_ebd_key_pattern = re.compile(r"^[SE]_\d{4}$")
+_ebd_key_pattern = re.compile(r"^E_\d{4}$")
+_ebd_key_with_heading_pattern = re.compile(r"^(?P<key>E_\d{4})_(?P<title>.*)\s*$")
 
 
 def get_ebd_docx_table(docx_file_path: Path, ebd_key: str) -> Table:
@@ -66,3 +67,21 @@ def get_ebd_docx_table(docx_file_path: Path, ebd_key: str) -> Table:
             table: Table = table_or_paragraph
             return table
     raise ValueError(f"EBD Table '{ebd_key}' was not found.")
+
+
+def get_all_ebd_keys(docx_file_path: Path) -> Dict[str, str]:
+    """
+    Extract all EBD keys from the given file.
+    Returns a dictionary with all EBD keys as keys and the respective EBD titles as values.
+    E.g. key: "E_0003", value: "Bestellung der Aggregationsebene RZ prüfen"
+    """
+    document = get_document(docx_file_path)
+    result: Dict[str, str] = {}
+    for paragraph in document.paragraphs:
+        match = _ebd_key_with_heading_pattern.match(paragraph.text)
+        if match is None:
+            continue
+        ebd_key = match.groupdict()["key"]
+        title = match.groupdict()["title"]
+        result.update({ebd_key: title})  # sets are by default ordered since Python 3.8
+    return result
