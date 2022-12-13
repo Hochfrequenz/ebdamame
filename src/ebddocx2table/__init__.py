@@ -16,10 +16,11 @@ def get_document(docx_file_path: Path) -> Document:
     """
     opens and returns the document specified in the docx_file_path using python-docx
     """
-    # https://python-docx.readthedocs.io/en/latest/user/documents.html#opening-a-file-like-document
     with open(docx_file_path, "rb") as docx_file:
         source_stream = BytesIO(docx_file.read())
-        # switched from StringIO to BytesIO because of:
+        # Originally I tried the recipe from
+        # https://python-docx.readthedocs.io/en/latest/user/documents.html#opening-a-file-like-document
+        # but then switched from StringIO to BytesIO (without explicit 'utf-8') because of:
         # UnicodeDecodeError: 'charmap' codec can't decode byte 0x81 in position 605: character maps to <undefined>
     try:
         document = Document(source_stream)
