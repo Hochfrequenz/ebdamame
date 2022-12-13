@@ -4,8 +4,8 @@ Further reading: https://docs.pytest.org/en/6.2.x/goodpractices.html#tests-outsi
 """
 from pathlib import Path
 
-from docx import Document
-from docx.table import Table
+from docx import Document  # type:ignore[import]
+from docx.table import Table  # type:ignore[import]
 
 import ebddocx2table
 
