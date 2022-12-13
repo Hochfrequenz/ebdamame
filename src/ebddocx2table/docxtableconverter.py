@@ -31,17 +31,23 @@ def _sort_columns_in_row(docx_table_row: _Row) -> Generator[_Cell, None, None]:
 _subsequent_step_pattern = re.compile(r"^(?P<bool>(?:ja)|(?:nein))\s*(?P<subsequent_step_number>(?:\d+\*?)|ende)?")
 
 
-def _cell_to_bool(cell: _Cell) -> Tuple[bool, Optional[str]]:
+def _read_subsequent_step_cell(cell: _Cell) -> Tuple[bool, Optional[str]]:
+    """
+    Parses the cell that contains the outcome and the subsequent step (e.g. "ja➡5" where "5" is the subsequent step
+    number).
+    """
     cell_text = cell.text.lower().strip()
+    # we first match against the lower case cell text; then we convert the "ende" to upper case again in the end.
+    # this is to avoid confusion with "ja" vs. "Ja"
     match = _subsequent_step_pattern.match(cell_text)
     if not match:
         raise ValueError(f"The cell content '{cell_text}' does not belong to a ja/nein cell")
     group_dict = match.groupdict()
-    boolean = group_dict["bool"] == "ja"
+    result_is_ja = group_dict["bool"] == "ja"
     subsequent_step_number = group_dict["subsequent_step_number"]
     if subsequent_step_number == "ende":
         subsequent_step_number = "Ende"
-    return boolean, subsequent_step_number
+    return result_is_ja, subsequent_step_number
 
 
 class _EbdSubRowPosition(Enum):
@@ -105,7 +111,7 @@ class DocxTableConverter:
                 sub_rows = []
                 step_number = row_cells[self._column_index_step_number].text.strip()
                 description = row_cells[self._column_index_description].text.strip()
-            boolean_outcome, subsequent_step_number = _cell_to_bool(row_cells[self._column_index_check_result])
+            boolean_outcome, subsequent_step_number = _read_subsequent_step_cell(row_cells[self._column_index_check_result])
             result_code = row_cells[self._column_index_result_code].text.strip()
             note = row_cells[self._column_index_note].text.strip()
             sub_row = EbdTableSubRow(
