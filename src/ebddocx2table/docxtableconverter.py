@@ -121,7 +121,9 @@ class DocxTableConverter:
                 sub_rows = []
                 step_number = row_cells[self._column_index_step_number].text.strip()
                 description = row_cells[self._column_index_description].text.strip()
-            boolean_outcome, subsequent_step_number = _read_subsequent_step_cell(row_cells[self._column_index_check_result])
+            boolean_outcome, subsequent_step_number = _read_subsequent_step_cell(
+                row_cells[self._column_index_check_result]
+            )
             result_code = row_cells[self._column_index_result_code].text.strip()
             note = row_cells[self._column_index_note].text.strip()
             sub_row = EbdTableSubRow(
