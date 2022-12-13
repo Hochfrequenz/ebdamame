@@ -83,5 +83,5 @@ def get_all_ebd_keys(docx_file_path: Path) -> Dict[str, str]:
             continue
         ebd_key = match.groupdict()["key"]
         title = match.groupdict()["title"]
-        result.update({ebd_key: title})  # sets are by default ordered since Python 3.8
+        result.update({ebd_key: title})
     return result
