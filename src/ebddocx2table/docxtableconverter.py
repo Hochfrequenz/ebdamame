@@ -85,6 +85,8 @@ class DocxTableConverter:
                     break  # because the prüfende rolle is always a full row with identical column cells
                 if table_cell.text == "Nr.":
                     self._column_index_step_number = column_index
+                    # In most of the cases this will be 1,
+                    # but it can be 0 if the first row does _not_ contain the "Prüfende Rolle".
                     self._row_index_last_header = row_index  # type:ignore[assignment]
                 elif table_cell.text == "Prüfschritt":
                     self._column_index_description = column_index
