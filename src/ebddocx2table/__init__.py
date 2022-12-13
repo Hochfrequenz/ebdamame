@@ -31,7 +31,7 @@ def get_document(docx_file_path: Path) -> Document:
 def _get_tables_and_paragaphs(document: Document) -> Generator[Union[Table, Paragraph], None, None]:
     """
     Yields tables and paragraphs from the given document in the order in which they occur in the document.
-    This is helpful because document.tables and documents.paragraphs are de-coupled and give you no information which
+    This is helpful because document.tables and document.paragraphs are de-coupled and give you no information which
     paragraph follows which table.
     """
     parent_elements = document.element.body
