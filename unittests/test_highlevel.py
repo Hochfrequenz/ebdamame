@@ -12,13 +12,13 @@ class TestEbdDocx2Table:
     A class for tests of the entire package/library
     """
 
-    @pytest.mark.datafiles("./test_data/ebd20221128.docx")
+    @pytest.mark.datafiles("unittests/test_data/ebd20221128.docx")
     @pytest.mark.parametrize("filename", ["ebd20221128.docx"])
     def test_can_read_document(self, datafiles, filename: str):
         actual = get_document(datafiles, filename)
         assert actual is not None
 
-    @pytest.mark.datafiles("./test_data/ebd20221128.docx")
+    @pytest.mark.datafiles("unittests/test_data/ebd20221128.docx")
     @pytest.mark.parametrize(
         "filename, ebd_key",
         [pytest.param("ebd20221128.docx", "E_0003")],  # 7.39.1 E_0003_Bestellung der Aggregationsebene RZ prüfen	342
@@ -27,7 +27,7 @@ class TestEbdDocx2Table:
         actual = get_ebd_docx_table(datafiles, filename, ebd_key=ebd_key)
         assert actual is not None
 
-    @pytest.mark.datafiles("./test_data/ebd20221128.docx")
+    @pytest.mark.datafiles("unittests/test_data/ebd20221128.docx")
     @pytest.mark.parametrize(
         "filename, ebd_key, chapter, sub_chapter, expected",
         [
