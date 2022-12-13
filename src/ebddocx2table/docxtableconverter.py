@@ -58,6 +58,7 @@ class _EbdSubRowPosition(Enum):
     over the rows. In the end each EbdTableRow shall contain two EbdTableSubRows of which the first is an "UPPER" and
     the second is a "LOWER" subrow. As soon as the "LOWER" subrow appeared we flush the two subrows into a EbdTableRow,
     whenever the "UPPER" subrow appears, we reset the subrow list (see loop in convert_docx_table_to_ebd_table).
+    In EBD E_0003 ("nein", "A01") is the UPPER and ("ja->2",None) is the lower subrow.
     """
 
     UPPER = 1  #: the upper sub row
