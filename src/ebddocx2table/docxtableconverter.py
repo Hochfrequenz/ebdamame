@@ -76,7 +76,9 @@ class DocxTableConverter:
         self._column_index_result_code: int
         self._column_index_note: int
         self._row_index_last_header: Literal[0, 1]  # either 0  or 1
-        for row_index in range(0, 2):  # just check the first two rows in the constructor
+        for row_index in range(0, 2):  # the first two lines/rows are the header of the table.
+            # In the constructor we just want to read the metadata from the table.
+            # For this purpose the first two lines are enough.
             for column_index, table_cell in enumerate(docx_table.row_cells(row_index)):
                 if row_index == 0 and _is_pruefende_rolle_cell(table_cell):
                     role = table_cell.text.split(":")[1].strip()
