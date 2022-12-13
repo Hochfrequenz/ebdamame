@@ -1,6 +1,6 @@
 import pytest
 from ebdtable2graph import EbdTable
-from examples import table_e0003
+from .examples import table_e0003
 
 from ebddocx2table.docxtableconverter import DocxTableConverter
 
