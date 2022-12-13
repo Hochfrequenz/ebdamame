@@ -3,7 +3,7 @@ from ebdtable2graph import EbdTable
 
 from ebddocx2table.docxtableconverter import DocxTableConverter
 
-from . import get_document, get_ebd_docx_table
+from . import get_all_ebd_keys, get_document, get_ebd_docx_table
 from .examples import table_e0003
 
 
@@ -17,6 +17,15 @@ class TestEbdDocx2Table:
     def test_can_read_document(self, datafiles, filename: str):
         actual = get_document(datafiles, filename)
         assert actual is not None
+
+    @pytest.mark.datafiles("unittests/test_data/ebd20221128.docx")
+    @pytest.mark.parametrize(
+        "filename,expected_length",
+        [pytest.param("ebd20221128.docx", 241)],
+    )
+    def test_get_ebd_keys(self, datafiles, filename: str, expected_length: int):
+        actual = get_all_ebd_keys(datafiles, filename)
+        assert len(actual) == expected_length  # arbitrary, didn't check if these are really _all_ the keys
 
     @pytest.mark.datafiles("unittests/test_data/ebd20221128.docx")
     @pytest.mark.parametrize(
