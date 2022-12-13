@@ -28,7 +28,7 @@ def _sort_columns_in_row(docx_table_row: _Row) -> Generator[_Cell, None, None]:
         yield _Cell(table_column, docx_table_row.table)
 
 
-_subsequent_step_pattern = re.compile(r"^(?P<bool>(?:ja)|(?:nein))\s*(?P<subsequent_step_number>(?:\d)|ende)?")
+_subsequent_step_pattern = re.compile(r"^(?P<bool>(?:ja)|(?:nein))\s*(?P<subsequent_step_number>(?:\d+\*?)|ende)?")
 
 
 def _cell_to_bool(cell: _Cell) -> Tuple[bool, Optional[str]]:
