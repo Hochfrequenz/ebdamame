@@ -4,7 +4,7 @@ This a docstring for the module.
 import re
 from enum import Enum
 from itertools import cycle
-from typing import Generator, List, Literal, Optional, Tuple, Union
+from typing import Generator, List, Literal, Optional, Tuple
 
 from docx.table import Table, _Cell, _Row  # type:ignore[import]
 from ebdtable2graph import EbdTable, EbdTableRow, EbdTableSubRow
