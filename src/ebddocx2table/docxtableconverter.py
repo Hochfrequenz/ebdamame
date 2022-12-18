@@ -141,7 +141,7 @@ class DocxTableConverter:
 
     def convert_docx_tables_to_ebd_table(self) -> EbdTable:
         """
-        Converts the raw docx table of an EBD to an EbdTable.
+        Converts the raw docx tables of an EBD to an EbdTable.
         The latter contains the same data but in an easily accessible format that can be used to e.g. plot real graphs.
         """
         rows: List[EbdTableRow] = []
