@@ -19,12 +19,12 @@ def get_document(datafiles, filename: str) -> Document:
     return ebddocx2table.get_document(path)
 
 
-def get_ebd_docx_table(datafiles, filename: str, ebd_key: str) -> Table:
+def get_ebd_docx_tables(datafiles, filename: str, ebd_key: str) -> Table:
     """
     a datafiles compatible wrapper around ebddocx2table.get_ebd_docx_table
     """
     path = datafiles / Path(filename)
-    return ebddocx2table.get_ebd_docx_table(path, ebd_key=ebd_key)
+    return ebddocx2table.get_ebd_docx_tables(path, ebd_key=ebd_key)
 
 
 def get_all_ebd_keys(datafiles, filename: str) -> Dict[str, str]:
