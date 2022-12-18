@@ -105,6 +105,40 @@ class DocxTableConverter:
                     self._column_index_note = column_index
         self._metadata = EbdTableMetaData(ebd_code=ebd_key, sub_chapter=sub_chapter, chapter=chapter, role=role)
 
+    def _handle_single_table(
+        self, table: Table, row_offset: int, rows: List[EbdTableRow], sub_rows: List[EbdTableSubRow]
+    ) -> None:
+        """
+        Handles a single table (out of possible multiple tables for 1 EBD).
+        The results are written into rows and sub_rows. Those will be modified.
+        """
+        for table_row, sub_row_position in zip(
+            table.rows[row_offset:],
+            cycle([_EbdSubRowPosition.UPPER, _EbdSubRowPosition.LOWER]),
+        ):
+            row_cells = list(_sort_columns_in_row(table_row))
+            if sub_row_position == _EbdSubRowPosition.UPPER:
+                # clear list every second entry
+                sub_rows = []
+                step_number = row_cells[self._column_index_step_number].text.strip()
+                description = row_cells[self._column_index_description].text.strip()
+            boolean_outcome, subsequent_step_number = _read_subsequent_step_cell(
+                row_cells[self._column_index_check_result]
+            )
+            sub_row = EbdTableSubRow(
+                check_result=EbdCheckResult(subsequent_step_number=subsequent_step_number, result=boolean_outcome),
+                result_code=row_cells[self._column_index_result_code].text.strip() or None,
+                note=row_cells[self._column_index_note].text.strip() or None,
+            )
+            sub_rows.append(sub_row)
+            if sub_row_position == _EbdSubRowPosition.LOWER:
+                row = EbdTableRow(
+                    description=description,
+                    step_number=step_number,
+                    sub_rows=sub_rows,
+                )
+                rows.append(row)
+
     def convert_docx_tables_to_ebd_table(self) -> EbdTable:
         """
         Converts the raw docx table of an EBD to an EbdTable.
@@ -116,34 +150,7 @@ class DocxTableConverter:
             offset: int = 0
             if table_index == 0:
                 offset = self._row_index_last_header + 1
-            for table_row, sub_row_position in zip(
-                table.rows[offset:],
-                cycle([_EbdSubRowPosition.UPPER, _EbdSubRowPosition.LOWER]),
-            ):
-                row_cells = list(_sort_columns_in_row(table_row))
-                if sub_row_position == _EbdSubRowPosition.UPPER:
-                    # clear list every second entry
-                    sub_rows = []
-                    step_number = row_cells[self._column_index_step_number].text.strip()
-                    description = row_cells[self._column_index_description].text.strip()
-                boolean_outcome, subsequent_step_number = _read_subsequent_step_cell(
-                    row_cells[self._column_index_check_result]
-                )
-                result_code = row_cells[self._column_index_result_code].text.strip()
-                note = row_cells[self._column_index_note].text.strip()
-                sub_row = EbdTableSubRow(
-                    check_result=EbdCheckResult(subsequent_step_number=subsequent_step_number, result=boolean_outcome),
-                    result_code=result_code or None,
-                    note=note or None,
-                )
-                sub_rows.append(sub_row)
-                if sub_row_position == _EbdSubRowPosition.LOWER:
-                    row = EbdTableRow(
-                        description=description,
-                        step_number=step_number,
-                        sub_rows=sub_rows,
-                    )
-                    rows.append(row)
+            self._handle_single_table(table, offset, rows, sub_rows)
         result = EbdTable(
             rows=rows,
             metadata=self._metadata,

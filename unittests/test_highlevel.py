@@ -1,5 +1,5 @@
 import pytest  # type:ignore[import]
-from docx.table import Table # type:ignore[import]
+from docx.table import Table  # type:ignore[import]
 from ebdtable2graph import EbdTable
 
 from ebddocx2table.docxtableconverter import DocxTableConverter
