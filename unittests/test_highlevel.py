@@ -1,4 +1,4 @@
-from typing import Generator, List
+from typing import List, Tuple
 
 import pytest  # type:ignore[import]
 from docx.table import Table  # type:ignore[import]
@@ -10,9 +10,11 @@ from . import get_all_ebd_keys, get_document, get_ebd_docx_tables
 from .examples import table_e0003, table_e0901
 
 
-@pytest.yield_fixture
-def single_ebd_key(datafiles, filename: str) -> List[str]:
-    yield (ebd_key for ebd_key in get_all_ebd_keys(datafiles, filename).values())
+@pytest.fixture
+def get_ebd_keys_and_files(datafiles, request) -> List[Tuple[str, str]]:
+    filename = request.param
+    all_keys_and_files = ((key, filename) for key in get_all_ebd_keys(datafiles, filename).keys())
+    return list(all_keys_and_files)
 
 
 class TestEbdDocx2Table:
@@ -84,23 +86,28 @@ class TestEbdDocx2Table:
 
     @pytest.mark.datafiles("unittests/test_data/ebd20221128.docx")
     @pytest.mark.parametrize(
-        "filename",
+        "get_ebd_keys_and_files",
         [
             pytest.param(
-                "ebd20221128.docx",
+                "ebd20221128.docx",  # this is used as positional argument for the indirect fixture
             ),
         ],
+        indirect=["get_ebd_keys_and_files"],
     )
-    def test_extraction(self, datafiles, filename: str, single_ebd_key: str):
+    def test_extraction(self, datafiles, get_ebd_keys_and_files: List[Tuple[str, str]], subtests):
         """
         tests the extraction and conversion without specific assertions
         """
-        try:
-            docx_tables = get_ebd_docx_tables(datafiles, filename, ebd_key=single_ebd_key)
-            converter = DocxTableConverter(
-                docx_tables, ebd_key=single_ebd_key, chapter="Dummy Chapter", sub_chapter="Dummy Subchapter"
-            )
-            actual = converter.convert_docx_tables_to_ebd_table()
-        except Exception as error:
-            error_msg = f"Error while scraping '{single_ebd_key}': {str(error)}"
-            pytest.skip(error_msg)
+        for ebd_key, filename in get_ebd_keys_and_files:
+            # I tried for 1.5h to dynamically create test cases for each entry but the parametrization really f***ed me
+            with subtests.test(ebd_key):
+                try:
+                    docx_tables = get_ebd_docx_tables(datafiles, filename, ebd_key=ebd_key)
+                    converter = DocxTableConverter(
+                        docx_tables, ebd_key=ebd_key, chapter="Dummy Chapter", sub_chapter="Dummy Subchapter"
+                    )
+                    actual = converter.convert_docx_tables_to_ebd_table()
+                    assert isinstance(actual, EbdTable)
+                except Exception as error:
+                    error_msg = f"Error while scraping '{ebd_key}': {str(error)}"
+                    pytest.skip(error_msg)
