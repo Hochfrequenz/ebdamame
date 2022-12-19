@@ -121,5 +121,10 @@ class TestEbdDocx2Table:
                     actual = converter.convert_docx_tables_to_ebd_table()
                     assert isinstance(actual, EbdTable)
                 except Exception as error:
+                    # In the long run, this pokemon catcher shall be removed.
+                    # For not it allows us to quickly get an overview of how well the scraping works for a single docx.
+                    # Simply run the test, then see how many of the subtests pass and which are skipped.
+                    # The skipped ones require developer analysis and code improvements.
+                    # This library has probably reached v1.0.0 if this catch block is not necessary anymore.
                     error_msg = f"Error while scraping '{ebd_key}': {str(error)}"
                     pytest.skip(error_msg)
