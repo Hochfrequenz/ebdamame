@@ -92,15 +92,27 @@ class TestEbdDocx2Table:
                 "ebd20221128.docx",  # this is used as positional argument for the indirect fixture
             ),
         ],
-        indirect=["get_ebd_keys_and_files"],
+        indirect=["get_ebd_keys_and_files"],  # see `def get_ebd_keys_and_files(datafiles, request)`
     )
     def test_extraction(self, datafiles, get_ebd_keys_and_files: List[Tuple[str, str]], subtests):
         """
         tests the extraction and conversion without specific assertions
         """
+        # The idea behind the test is, that it automatically tries to scrape all available EBD tables from a given file.
+        # This is a useful test because in the end, that's what an application built upon this library will try to do.
+        # So I tried to combine the okay-ish "get_all_ebd_keys" feature with the extraction logic.
+        # My idea was that the EBD keys extracted from a given document are used to automatically generate distinct
+        # test cases for each ebd_key inside a given file.
+        # I thought this was possible with indirect parametrization:
+        # https://docs.pytest.org/en/stable/example/parametrize.html#indirect-parametrization
+        # https://github.com/search?l=Python&q=org%3AHochfrequenz+indirect+%3D+true&type=Code
+        # I thought that I only needed to feed the datafiles fixture and a filename as arguments to my own fixture that
+        # then should yield me differently parametrized test runs for each EBD inside the file. The advantage would have
+        # been that I do not have to define the expected EBDs to be tested in advance. But I failed.
+        # I tried really hard for 1.5 to get the parametrization right and then just gave up and came around with a
+        # different approach, called pytest-subtests: https://github.com/pytest-dev/pytest-subtests
         for ebd_key, filename in get_ebd_keys_and_files:
-            # I tried for 1.5h to dynamically create test cases for each entry but the parametrization really f***ed me
-            with subtests.test(ebd_key):
+            with subtests.test(ebd_key):  # this requires pytest-subtests to be installed (see tox.ini)
                 try:
                     docx_tables = get_ebd_docx_tables(datafiles, filename, ebd_key=ebd_key)
                     converter = DocxTableConverter(
