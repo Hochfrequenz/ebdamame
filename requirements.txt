@@ -6,12 +6,13 @@
 #
 attrs==22.1.0
     # via ebdtable2graph
-ebdtable2graph==0.0.2
+ebdtable2graph==0.1.2
     # via -r requirements.in
 lxml==4.9.2
     # via python-docx
+more-itertools==9.0.0
+    # via -r requirements.in
 networkx==2.8.8
     # via ebdtable2graph
 python-docx==0.8.11
     # via -r requirements.in
-more_itertools==9.0.0
