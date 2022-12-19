@@ -14,6 +14,7 @@ from .examples import table_e0003, table_e0901
 def single_ebd_key(datafiles, filename: str) -> List[str]:
     yield (ebd_key for ebd_key in get_all_ebd_keys(datafiles, filename).values())
 
+
 class TestEbdDocx2Table:
     """
     A class for tests of the entire package/library
@@ -90,13 +91,15 @@ class TestEbdDocx2Table:
             ),
         ],
     )
-    def test_extraction(self, datafiles, filename: str, single_ebd_key:str):
+    def test_extraction(self, datafiles, filename: str, single_ebd_key: str):
         """
         tests the extraction and conversion without specific assertions
         """
         try:
             docx_tables = get_ebd_docx_tables(datafiles, filename, ebd_key=single_ebd_key)
-            converter = DocxTableConverter(docx_tables, ebd_key=single_ebd_key, chapter="Dummy Chapter", sub_chapter="Dummy Subchapter")
+            converter = DocxTableConverter(
+                docx_tables, ebd_key=single_ebd_key, chapter="Dummy Chapter", sub_chapter="Dummy Subchapter"
+            )
             actual = converter.convert_docx_tables_to_ebd_table()
         except Exception as error:
             error_msg = f"Error while scraping '{single_ebd_key}': {str(error)}"
