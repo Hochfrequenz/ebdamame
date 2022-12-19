@@ -7,7 +7,7 @@ from itertools import cycle
 from typing import Generator, List, Literal, Optional, Tuple
 
 from docx.table import Table, _Cell, _Row  # type:ignore[import]
-from ebdtable2graph import EbdTable, EbdTableRow, EbdTableSubRow
+from ebdtable2graph.models import EbdTable, EbdTableRow, EbdTableSubRow
 from ebdtable2graph.models.ebd_table import EbdCheckResult, EbdTableMetaData
 from more_itertools import first
 

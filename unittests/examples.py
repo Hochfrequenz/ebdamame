@@ -2,7 +2,7 @@
 module contains data as we expected them to be scraped from the docx file
 """
 
-from ebdtable2graph import EbdTable
+from ebdtable2graph.models import EbdTable
 from ebdtable2graph.models.ebd_table import EbdCheckResult, EbdTableMetaData, EbdTableRow, EbdTableSubRow
 
 # E_0003 is pretty short
