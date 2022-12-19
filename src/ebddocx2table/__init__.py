@@ -73,7 +73,9 @@ def get_ebd_docx_tables(docx_file_path: Path, ebd_key: str) -> List[Table]:
             tables.append(table)
             # Now we have to check if the EBD table spans multiple pages and _maybe_ we have to collect more tables.
             # The funny thing is: Sometimes the authors create multiple tables split over multiple lines which belong
-            # together, sometimes they create 1 proper table that spans multiple pages. This we won't notice here.
+            # together, sometimes they create 1 proper table that spans multiple pages.
+            # The latter case (1 docx table spanning >1 pages) is transparent to the extraction logic; i.e. python-docx
+            # treats a single table that spans multiple pages just the same as a table on only 1 page.
             for next_item in tables_and_paragraphs:  # start iterating from where the outer loop paused
                 if isinstance(next_item, Table):
                     # this is the case that the authors created multiple single tables on single adjacent pages
