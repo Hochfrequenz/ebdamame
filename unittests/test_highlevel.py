@@ -1,3 +1,5 @@
+from typing import List, Tuple
+
 import pytest  # type:ignore[import]
 from docx.table import Table  # type:ignore[import]
 from ebdtable2graph import EbdTable
@@ -6,6 +8,13 @@ from ebddocx2table.docxtableconverter import DocxTableConverter
 
 from . import get_all_ebd_keys, get_document, get_ebd_docx_tables
 from .examples import table_e0003, table_e0901
+
+
+@pytest.fixture
+def get_ebd_keys_and_files(datafiles, request) -> List[Tuple[str, str]]:
+    filename = request.param
+    all_keys_and_files = ((key, filename) for key in get_all_ebd_keys(datafiles, filename).keys())
+    return list(all_keys_and_files)
 
 
 class TestEbdDocx2Table:
@@ -74,3 +83,48 @@ class TestEbdDocx2Table:
         converter = DocxTableConverter(docx_table, ebd_key=ebd_key, chapter=chapter, sub_chapter=sub_chapter)
         actual = converter.convert_docx_tables_to_ebd_table()
         assert actual == expected
+
+    @pytest.mark.datafiles("unittests/test_data/ebd20221128.docx")
+    @pytest.mark.parametrize(
+        "get_ebd_keys_and_files",
+        [
+            pytest.param(
+                "ebd20221128.docx",  # this is used as positional argument for the indirect fixture
+            ),
+        ],
+        indirect=["get_ebd_keys_and_files"],  # see `def get_ebd_keys_and_files(datafiles, request)`
+    )
+    def test_extraction(self, datafiles, get_ebd_keys_and_files: List[Tuple[str, str]], subtests):
+        """
+        tests the extraction and conversion without specific assertions
+        """
+        # The idea behind the test is, that it automatically tries to scrape all available EBD tables from a given file.
+        # This is a useful test because in the end, that's what an application built upon this library will try to do.
+        # So I tried to combine the okay-ish "get_all_ebd_keys" feature with the extraction logic.
+        # My idea was that the EBD keys extracted from a given document are used to automatically generate distinct
+        # test cases for each ebd_key inside a given file.
+        # I thought this was possible with indirect parametrization:
+        # https://docs.pytest.org/en/stable/example/parametrize.html#indirect-parametrization
+        # https://github.com/search?l=Python&q=org%3AHochfrequenz+indirect+%3D+true&type=Code
+        # I thought that I only needed to feed the datafiles fixture and a filename as arguments to my own fixture that
+        # then should yield me differently parametrized test runs for each EBD inside the file. The advantage would have
+        # been that I do not have to define the expected EBDs to be tested in advance. But I failed.
+        # I tried really hard for 1.5 to get the parametrization right and then just gave up and came around with a
+        # different approach, called pytest-subtests: https://github.com/pytest-dev/pytest-subtests
+        for ebd_key, filename in get_ebd_keys_and_files:
+            with subtests.test(ebd_key):  # this requires pytest-subtests to be installed (see tox.ini)
+                try:
+                    docx_tables = get_ebd_docx_tables(datafiles, filename, ebd_key=ebd_key)
+                    converter = DocxTableConverter(
+                        docx_tables, ebd_key=ebd_key, chapter="Dummy Chapter", sub_chapter="Dummy Subchapter"
+                    )
+                    actual = converter.convert_docx_tables_to_ebd_table()
+                    assert isinstance(actual, EbdTable)
+                except Exception as error:
+                    # In the long run, this pokemon catcher shall be removed.
+                    # For not it allows us to quickly get an overview of how well the scraping works for a single docx.
+                    # Simply run the test, then see how many of the subtests pass and which are skipped.
+                    # The skipped ones require developer analysis and code improvements.
+                    # This library has probably reached v1.0.0 if this catch block is not necessary anymore.
+                    error_msg = f"Error while scraping '{ebd_key}': {str(error)}"
+                    pytest.skip(error_msg)
