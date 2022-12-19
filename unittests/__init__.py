@@ -3,9 +3,8 @@ This file is here, because this allows for best de-coupling of tests and applica
 Further reading: https://docs.pytest.org/en/6.2.x/goodpractices.html#tests-outside-application-code
 """
 from pathlib import Path
-from typing import Dict, List, Iterable, Generator
+from typing import Dict, List
 
-import pytest
 from docx import Document  # type:ignore[import]
 from docx.table import Table  # type:ignore[import]
 
