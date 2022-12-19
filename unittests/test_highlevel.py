@@ -1,3 +1,5 @@
+from typing import Generator, List
+
 import pytest  # type:ignore[import]
 from docx.table import Table  # type:ignore[import]
 from ebdtable2graph import EbdTable
@@ -7,6 +9,10 @@ from ebddocx2table.docxtableconverter import DocxTableConverter
 from . import get_all_ebd_keys, get_document, get_ebd_docx_tables
 from .examples import table_e0003, table_e0901
 
+
+@pytest.yield_fixture
+def single_ebd_key(datafiles, filename: str) -> List[str]:
+    yield (ebd_key for ebd_key in get_all_ebd_keys(datafiles, filename).values())
 
 class TestEbdDocx2Table:
     """
@@ -74,3 +80,24 @@ class TestEbdDocx2Table:
         converter = DocxTableConverter(docx_table, ebd_key=ebd_key, chapter=chapter, sub_chapter=sub_chapter)
         actual = converter.convert_docx_tables_to_ebd_table()
         assert actual == expected
+
+    @pytest.mark.datafiles("unittests/test_data/ebd20221128.docx")
+    @pytest.mark.parametrize(
+        "filename",
+        [
+            pytest.param(
+                "ebd20221128.docx",
+            ),
+        ],
+    )
+    def test_extraction(self, datafiles, filename: str, single_ebd_key:str):
+        """
+        tests the extraction and conversion without specific assertions
+        """
+        try:
+            docx_tables = get_ebd_docx_tables(datafiles, filename, ebd_key=single_ebd_key)
+            converter = DocxTableConverter(docx_tables, ebd_key=single_ebd_key, chapter="Dummy Chapter", sub_chapter="Dummy Subchapter")
+            actual = converter.convert_docx_tables_to_ebd_table()
+        except Exception as error:
+            error_msg = f"Error while scraping '{single_ebd_key}': {str(error)}"
+            pytest.skip(error_msg)

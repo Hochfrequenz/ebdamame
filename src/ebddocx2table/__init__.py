@@ -81,6 +81,9 @@ def get_ebd_docx_tables(docx_file_path: Path, ebd_key: str) -> List[Table]:
                     continue
                 else:
                     break  # because if no other table follows, we're done collecting the tables for this EBD key
+        if next_table_is_requested_table and len(tables)>0:
+            # break the outer loop, too
+            break
     if len(tables) == 0:
         raise ValueError(f"EBD Table '{ebd_key}' was not found.")
     return tables
