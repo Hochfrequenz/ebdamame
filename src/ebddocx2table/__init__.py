@@ -52,8 +52,6 @@ class TableNotFoundError(Exception):
     an error that is raised when a requested table was not found
     """
 
-    ebd_key: str  #: the key of the requested EBD, e.g. "E_0001"
-
     def __init__(self, ebd_key: str):
         self.ebd_key = ebd_key
 
