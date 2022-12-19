@@ -22,7 +22,7 @@ def get_document(datafiles, filename: str) -> Document:
 
 def get_ebd_docx_tables(datafiles, filename: str, ebd_key: str) -> List[Table]:
     """
-    a datafiles compatible wrapper around ebddocx2table.get_ebd_docx_table
+    a datafiles compatible wrapper around ebddocx2table.get_ebd_docx_tables
     """
     path = datafiles / Path(filename)
     return ebddocx2table.get_ebd_docx_tables(path, ebd_key=ebd_key)
