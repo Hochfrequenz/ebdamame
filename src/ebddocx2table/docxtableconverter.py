@@ -79,14 +79,14 @@ class DocxTableConverter:
         self._docx_tables = docx_tables
         self._column_index_step_number: int
         self._column_index_description: int
-        self._column_index_check_result: int = 0
-        self._column_index_result_code: int = 0
+        self._column_index_check_result: int
+        self._column_index_result_code: int
         self._column_index_note: int
         self._row_index_last_header: Literal[0, 1]  # either 0  or 1
         for row_index in range(0, 2):  # the first two lines/rows are the header of the table.
             # In the constructor we just want to read the metadata from the table.
             # For this purpose the first two lines are enough.
-            # Not it feels natural, to loop over the cells/columns of the first row, but before we do so, we have to
+            # Now it feels natural, to loop over the cells/columns of the first row, but before we do so, we have to
             # remove duplicates. Although there are usually only 5 columns visible, technically there might be even 8.
             # In these cases (e.g. for E_0453) columns like 'Prüfergebnis' simply occur twice in the docx table header.
             distinct_cell_texts: List[str] = [

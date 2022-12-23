@@ -125,7 +125,6 @@ table_e0901 = EbdTable(
         ),
     ],
 )
-# ⚠ I didn't check the result row by row!
 table_e0453 = EbdTable(
     metadata=EbdTableMetaData(
         ebd_code="E_0453",
