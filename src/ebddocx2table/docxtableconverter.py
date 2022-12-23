@@ -79,13 +79,15 @@ class DocxTableConverter:
         self._docx_tables = docx_tables
         self._column_index_step_number: int
         self._column_index_description: int
-        self._column_index_check_result: int
-        self._column_index_result_code: int
+        self._column_index_check_result: int = 0
+        self._column_index_result_code: int = 0
         self._column_index_note: int
         self._row_index_last_header: Literal[0, 1]  # either 0  or 1
         for row_index in range(0, 2):  # the first two lines/rows are the header of the table.
             # In the constructor we just want to read the metadata from the table.
             # For this purpose the first two lines are enough.
+            column_offset = 0  # the column offset is !=0 if columns in the header are duplicated
+            # generally the offset will be <=0 to compensate for the duplicated columns (which occur in the header only)
             for column_index, table_cell in enumerate(first(docx_tables).row_cells(row_index)):
                 if row_index == 0 and _is_pruefende_rolle_cell(table_cell):
                     role = table_cell.text.split(":")[1].strip()
@@ -98,11 +100,20 @@ class DocxTableConverter:
                 elif table_cell.text == "Prüfschritt":
                     self._column_index_description = column_index
                 elif table_cell.text == "Prüfergebnis":
-                    self._column_index_check_result = column_index
+                    if self._column_index_check_result != 0:
+                        # e.g. for E_0453 this column occurs twice in the header, don't know why
+                        column_offset -= 1
+                    else:
+                        self._column_index_check_result = column_index
                 elif table_cell.text == "Code":
-                    self._column_index_result_code = column_index
+                    if self._column_index_result_code != 0:
+                        # e.g. for E_0453 this column occurs twice in the header, don't know why
+                        # maybe it's better to sanitize the row before looping over the row cells
+                        column_offset -= 1
+                    else:
+                        self._column_index_result_code = column_index + column_offset
                 elif table_cell.text == "Hinweis":
-                    self._column_index_note = column_index
+                    self._column_index_note = column_index + column_offset
         self._metadata = EbdTableMetaData(ebd_code=ebd_key, sub_chapter=sub_chapter, chapter=chapter, role=role)
 
     def _handle_single_table(
@@ -112,11 +123,17 @@ class DocxTableConverter:
         Handles a single table (out of possible multiple tables for 1 EBD).
         The results are written into rows and sub_rows. Those will be modified.
         """
+        upper_lower_iterator = cycle([_EbdSubRowPosition.UPPER, _EbdSubRowPosition.LOWER])
         for table_row, sub_row_position in zip(
             table.rows[row_offset:],
-            cycle([_EbdSubRowPosition.UPPER, _EbdSubRowPosition.LOWER]),
+            upper_lower_iterator,
         ):
             row_cells = list(_sort_columns_in_row(table_row))
+            if len(row_cells) <= self._column_index_description:
+                # These are the multi-column rows that span that contain stuff like
+                # "Alle festgestellten Antworten sind anzugeben, soweit im Format möglich (maximal 8 Antwortcodes)*."
+                _ = next(upper_lower_iterator)  # reset the iterator
+                continue
             if sub_row_position == _EbdSubRowPosition.UPPER:
                 # clear list every second entry
                 sub_rows = []

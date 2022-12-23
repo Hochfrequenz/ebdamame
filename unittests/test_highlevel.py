@@ -8,7 +8,7 @@ from ebddocx2table import TableNotFoundError
 from ebddocx2table.docxtableconverter import DocxTableConverter
 
 from . import get_all_ebd_keys, get_document, get_ebd_docx_tables
-from .examples import table_e0003, table_e0901
+from .examples import table_e0003, table_e0453, table_e0901
 
 
 @pytest.fixture
@@ -74,6 +74,14 @@ class TestEbdDocx2Table:
                 "16.1.2 E_0901_Gegenvorschlag prüfen",
                 table_e0901,
                 id="E_0901: table that span over two pages",
+            ),
+            pytest.param(
+                "ebd20221128.docx",
+                "E_0453",
+                "6.18 AD: Stammdatensynchronisation",
+                "6.18.1 E_0453_Änderung prüfen",
+                table_e0453,
+                id="E_0453 with a multi-column mid table",
             ),
         ],
     )
