@@ -159,12 +159,17 @@ class DocxTableConverter:
                     sub_rows=sub_rows,
                 )
                 if "multi_step_instruction_text" in locals():
+                    # if the variable with the given name is defined, then we append a multi_step_instruction, once.
                     multi_step_instructions.append(
                         MultiStepInstruction(
-                            first_step_number_affected=step_number, instruction_text=multi_step_instruction_text
+                            instruction_text=multi_step_instruction_text,
+                            # in contrast to the row in which we found the bare multi_step_instruction_text
+                            # we know the step_number here. This is why the detection of the instruction and the append
+                            # are not in the same place.
+                            first_step_number_affected=step_number,
                         )
                     )
-                    del multi_step_instruction_text
+                    del multi_step_instruction_text  # prevent adding the same instructions for all following steps
                 rows.append(row)
 
     def convert_docx_tables_to_ebd_table(self) -> EbdTable:
