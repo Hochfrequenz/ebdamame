@@ -102,8 +102,8 @@ class DocxTableConverter:
         self._docx_tables = docx_tables
         self._column_index_step_number: int
         self._column_index_description: int
-        self._column_index_check_result: int = 0
-        self._column_index_result_code: int = 0
+        self._column_index_check_result: int
+        self._column_index_result_code: int
         self._column_index_note: int
         self._row_index_last_header: Literal[0, 1]  # either 0  or 1
         for row_index in range(0, 2):  # the first two lines/rows are the header of the table.
