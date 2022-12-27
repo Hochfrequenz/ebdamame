@@ -77,19 +77,19 @@ class TestEbdDocx2Table:
             ),
             pytest.param(
                 "ebd20221128.docx",
-                "E_0453",
-                "6.18 AD: Stammdatensynchronisation",
-                "6.18.1 E_0453_Änderung prüfen",
-                table_e0453,
-                id="E_0453 with a multi-column mid table",
-            ),
-            pytest.param(
-                "ebd20221128.docx",
                 "E_0462",
                 "6.18 AD: Stammdatensynchronisation",
                 "6.18.1 E_0453_Änderung prüfen",
                 table_e0453,
                 id="E_0462 with gray outer lefts",
+            ),
+            pytest.param(
+                "ebd20221128.docx",
+                "E_0453",
+                "6.18 AD: Stammdatensynchronisation",
+                "6.18.1 E_0453_Änderung prüfen",
+                table_e0453,
+                id="E_0453 with a multi-column mid table",
             ),
         ],
     )
