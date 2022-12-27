@@ -8,7 +8,7 @@ from typing import Generator, List, Literal, Optional, Tuple
 
 from docx.table import Table, _Cell, _Row  # type:ignore[import]
 from ebdtable2graph.models import EbdTable, EbdTableRow, EbdTableSubRow
-from ebdtable2graph.models.ebd_table import _STEP_NUMBER_REGEX, EbdCheckResult, EbdTableMetaData
+from ebdtable2graph.models.ebd_table import _STEP_NUMBER_REGEX, EbdCheckResult, EbdTableMetaData, MultiStepInstruction
 from more_itertools import first, first_true
 
 
@@ -134,14 +134,19 @@ class DocxTableConverter:
                     self._column_index_note = column_index
         self._metadata = EbdTableMetaData(ebd_code=ebd_key, sub_chapter=sub_chapter, chapter=chapter, role=role)
 
-    # I see that there are quite a few local variables, but honestly see no reason to break it down any further
-    # pylint:disable=too-many-locals
+    # I see that there are quite a few local variables, but honestly see no reason to break it down any further.
+    # pylint:disable=too-many-locals, too-many-arguments
     def _handle_single_table(
-        self, table: Table, row_offset: int, rows: List[EbdTableRow], sub_rows: List[EbdTableSubRow]
+        self,
+        table: Table,
+        multi_step_instructions: List[MultiStepInstruction],
+        row_offset: int,
+        rows: List[EbdTableRow],
+        sub_rows: List[EbdTableSubRow],
     ) -> None:
         """
         Handles a single table (out of possible multiple tables for 1 EBD).
-        The results are written into rows and sub_rows. Those will be modified.
+        The results are written into rows, sub_rows and multi_step_instructions. Those will be modified.
         """
         upper_lower_iterator = cycle([_EbdSubRowPosition.UPPER, _EbdSubRowPosition.LOWER])
         use_cases: List[str] = []
@@ -154,6 +159,8 @@ class DocxTableConverter:
                 # These are the multi-column rows that span that contain stuff like
                 # "Alle festgestellten Antworten sind anzugeben, soweit im Format möglich (maximal 8 Antwortcodes)*."
                 _ = next(upper_lower_iterator)  # reset the iterator
+                multi_step_instruction_text = row_cells[0].text
+                # we store the text in the local variable for now because we don't yet know the next step number
                 continue
             if sub_row_position == _EbdSubRowPosition.UPPER:
                 use_cases = _get_use_cases(row_cells)
@@ -174,6 +181,18 @@ class DocxTableConverter:
                 row = EbdTableRow(
                     description=description, step_number=step_number, sub_rows=sub_rows, use_cases=use_cases or None
                 )
+                if "multi_step_instruction_text" in locals():
+                    # if the variable with the given name is defined, then we append a multi_step_instruction, once.
+                    multi_step_instructions.append(
+                        MultiStepInstruction(
+                            instruction_text=multi_step_instruction_text,
+                            # in contrast to the row in which we found the bare multi_step_instruction_text
+                            # we know the step_number here. This is why the detection of the instruction and the append
+                            # are not in the same place.
+                            first_step_number_affected=step_number,
+                        )
+                    )
+                    del multi_step_instruction_text  # prevent adding the same instructions for all following steps
                 rows.append(row)
 
     def convert_docx_tables_to_ebd_table(self) -> EbdTable:
@@ -183,13 +202,11 @@ class DocxTableConverter:
         """
         rows: List[EbdTableRow] = []
         sub_rows: List[EbdTableSubRow] = []
+        multi_step_instructions: List[MultiStepInstruction] = []
         for table_index, table in enumerate(self._docx_tables):
             offset: int = 0
             if table_index == 0:
                 offset = self._row_index_last_header + 1
-            self._handle_single_table(table, offset, rows, sub_rows)
-        result = EbdTable(
-            rows=rows,
-            metadata=self._metadata,
-        )
+            self._handle_single_table(table, multi_step_instructions, offset, rows, sub_rows)
+        result = EbdTable(rows=rows, metadata=self._metadata, multi_step_instructions=multi_step_instructions or None)
         return result
