@@ -3,7 +3,13 @@ module contains data as we expected them to be scraped from the docx file
 """
 
 from ebdtable2graph.models import EbdTable
-from ebdtable2graph.models.ebd_table import EbdCheckResult, EbdTableMetaData, EbdTableRow, EbdTableSubRow
+from ebdtable2graph.models.ebd_table import (
+    EbdCheckResult,
+    EbdTableMetaData,
+    EbdTableRow,
+    EbdTableSubRow,
+    MultiStepInstruction,
+)
 
 # E_0003 is pretty short
 # https://www.entscheidungsbaumdiagramm.de/diagram?ebdKey=E_0003&formatVersion=FV2204
@@ -146,6 +152,7 @@ table_e0453 = EbdTable(
                     check_result=EbdCheckResult(result=False, subsequent_step_number="2"), result_code=None, note=None
                 ),
             ],
+            use_cases=None,
         ),
         EbdTableRow(
             step_number="2",
@@ -158,6 +165,7 @@ table_e0453 = EbdTable(
                     check_result=EbdCheckResult(result=False, subsequent_step_number="4"), result_code=None, note=None
                 ),
             ],
+            use_cases=None,
         ),
         EbdTableRow(
             step_number="3",
@@ -172,6 +180,7 @@ table_e0453 = EbdTable(
                     check_result=EbdCheckResult(result=True, subsequent_step_number="4"), result_code=None, note=None
                 ),
             ],
+            use_cases=None,
         ),
         EbdTableRow(
             step_number="4",
@@ -186,6 +195,7 @@ table_e0453 = EbdTable(
                     check_result=EbdCheckResult(result=False, subsequent_step_number="5"), result_code=None, note=None
                 ),
             ],
+            use_cases=None,
         ),
         EbdTableRow(
             step_number="5",
@@ -200,6 +210,7 @@ table_e0453 = EbdTable(
                     check_result=EbdCheckResult(result=False, subsequent_step_number="6"), result_code=None, note=None
                 ),
             ],
+            use_cases=None,
         ),
         EbdTableRow(
             step_number="6",
@@ -214,6 +225,7 @@ table_e0453 = EbdTable(
                     check_result=EbdCheckResult(result=True, subsequent_step_number="7"), result_code=None, note=None
                 ),
             ],
+            use_cases=None,
         ),
         EbdTableRow(
             step_number="7",
@@ -228,6 +240,7 @@ table_e0453 = EbdTable(
                     check_result=EbdCheckResult(result=True, subsequent_step_number="8"), result_code=None, note=None
                 ),
             ],
+            use_cases=None,
         ),
         EbdTableRow(
             step_number="8",
@@ -242,6 +255,7 @@ table_e0453 = EbdTable(
                     check_result=EbdCheckResult(result=True, subsequent_step_number="9"), result_code=None, note=None
                 ),
             ],
+            use_cases=None,
         ),
         EbdTableRow(
             step_number="9",
@@ -256,6 +270,7 @@ table_e0453 = EbdTable(
                     check_result=EbdCheckResult(result=True, subsequent_step_number="10"), result_code=None, note=None
                 ),
             ],
+            use_cases=None,
         ),
         EbdTableRow(
             step_number="10",
@@ -268,6 +283,7 @@ table_e0453 = EbdTable(
                     check_result=EbdCheckResult(result=False, subsequent_step_number="12"), result_code=None, note=None
                 ),
             ],
+            use_cases=None,
         ),
         EbdTableRow(
             step_number="11",
@@ -282,6 +298,7 @@ table_e0453 = EbdTable(
                     check_result=EbdCheckResult(result=True, subsequent_step_number="12"), result_code=None, note=None
                 ),
             ],
+            use_cases=None,
         ),
         EbdTableRow(
             step_number="12",
@@ -296,6 +313,7 @@ table_e0453 = EbdTable(
                     check_result=EbdCheckResult(result=True, subsequent_step_number="13"), result_code=None, note=None
                 ),
             ],
+            use_cases=None,
         ),
         EbdTableRow(
             step_number="13",
@@ -310,6 +328,7 @@ table_e0453 = EbdTable(
                     check_result=EbdCheckResult(result=True, subsequent_step_number="14"), result_code=None, note=None
                 ),
             ],
+            use_cases=None,
         ),
         EbdTableRow(
             step_number="14",
@@ -324,6 +343,7 @@ table_e0453 = EbdTable(
                     check_result=EbdCheckResult(result=True, subsequent_step_number="15"), result_code=None, note=None
                 ),
             ],
+            use_cases=None,
         ),
         EbdTableRow(
             step_number="15",
@@ -338,6 +358,7 @@ table_e0453 = EbdTable(
                     check_result=EbdCheckResult(result=True, subsequent_step_number="16"), result_code=None, note=None
                 ),
             ],
+            use_cases=None,
         ),
         EbdTableRow(
             step_number="16",
@@ -352,6 +373,7 @@ table_e0453 = EbdTable(
                     check_result=EbdCheckResult(result=True, subsequent_step_number="17"), result_code=None, note=None
                 ),
             ],
+            use_cases=None,
         ),
         EbdTableRow(
             step_number="17",
@@ -366,6 +388,7 @@ table_e0453 = EbdTable(
                     check_result=EbdCheckResult(result=True, subsequent_step_number="18"), result_code=None, note=None
                 ),
             ],
+            use_cases=None,
         ),
         EbdTableRow(
             step_number="18",
@@ -378,6 +401,7 @@ table_e0453 = EbdTable(
                     check_result=EbdCheckResult(result=False, subsequent_step_number="20"), result_code=None, note=None
                 ),
             ],
+            use_cases=None,
         ),
         EbdTableRow(
             step_number="19",
@@ -392,6 +416,7 @@ table_e0453 = EbdTable(
                     check_result=EbdCheckResult(result=False, subsequent_step_number="20"), result_code=None, note=None
                 ),
             ],
+            use_cases=None,
         ),
         EbdTableRow(
             step_number="20",
@@ -404,6 +429,7 @@ table_e0453 = EbdTable(
                     check_result=EbdCheckResult(result=False, subsequent_step_number="27"), result_code=None, note=None
                 ),
             ],
+            use_cases=None,
         ),
         EbdTableRow(
             step_number="21",
@@ -418,6 +444,7 @@ table_e0453 = EbdTable(
                     check_result=EbdCheckResult(result=True, subsequent_step_number="22"), result_code=None, note=None
                 ),
             ],
+            use_cases=None,
         ),
         EbdTableRow(
             step_number="22",
@@ -432,6 +459,7 @@ table_e0453 = EbdTable(
                     check_result=EbdCheckResult(result=True, subsequent_step_number="23"), result_code=None, note=None
                 ),
             ],
+            use_cases=None,
         ),
         EbdTableRow(
             step_number="23",
@@ -444,6 +472,7 @@ table_e0453 = EbdTable(
                     check_result=EbdCheckResult(result=False, subsequent_step_number="27"), result_code=None, note=None
                 ),
             ],
+            use_cases=None,
         ),
         EbdTableRow(
             step_number="24",
@@ -458,6 +487,7 @@ table_e0453 = EbdTable(
                     check_result=EbdCheckResult(result=True, subsequent_step_number="25"), result_code=None, note=None
                 ),
             ],
+            use_cases=None,
         ),
         EbdTableRow(
             step_number="25",
@@ -472,6 +502,7 @@ table_e0453 = EbdTable(
                     check_result=EbdCheckResult(result=True, subsequent_step_number="26"), result_code=None, note=None
                 ),
             ],
+            use_cases=None,
         ),
         EbdTableRow(
             step_number="26",
@@ -486,6 +517,7 @@ table_e0453 = EbdTable(
                     check_result=EbdCheckResult(result=True, subsequent_step_number="27"), result_code=None, note=None
                 ),
             ],
+            use_cases=None,
         ),
         EbdTableRow(
             step_number="27",
@@ -502,6 +534,13 @@ table_e0453 = EbdTable(
                     note="Stammdaten wurden übernommen \nHinweis A**: Es werden alle gemerkten Antwortcodes der vorhergehenden Prüfschritte übermittelt.",
                 ),
             ],
+            use_cases=None,
         ),
+    ],
+    multi_step_instructions=[
+        MultiStepInstruction(
+            first_step_number_affected="4",
+            instruction_text="Alle festgestellten Antworten sind anzugeben, soweit im Format möglich (maximal 8 Antwortcodes)*.",
+        )
     ],
 )
