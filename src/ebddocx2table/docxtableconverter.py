@@ -8,8 +8,8 @@ from typing import Generator, List, Literal, Optional, Tuple
 
 from docx.table import Table, _Cell, _Row  # type:ignore[import]
 from ebdtable2graph.models import EbdTable, EbdTableRow, EbdTableSubRow
-from ebdtable2graph.models.ebd_table import EbdCheckResult, EbdTableMetaData, MultiStepInstruction
-from more_itertools import first
+from ebdtable2graph.models.ebd_table import _STEP_NUMBER_REGEX, EbdCheckResult, EbdTableMetaData, MultiStepInstruction
+from more_itertools import first, first_true
 
 
 def _is_pruefende_rolle_cell_text(text: str) -> bool:
@@ -30,6 +30,29 @@ def _sort_columns_in_row(docx_table_row: _Row) -> Generator[_Cell, None, None]:
 
 
 _subsequent_step_pattern = re.compile(r"^(?P<bool>(?:ja)|(?:nein))\s*(?P<subsequent_step_number>(?:\d+\*?)|ende)?")
+
+_step_number_pattern = re.compile(_STEP_NUMBER_REGEX)
+
+
+def _get_index_of_first_column_with_step_number(cells: List[_Cell]) -> int:
+    """
+    returns the index of the first cell in cells, that contains a step number
+    """
+    first_step_number_cell = first_true(cells, pred=lambda cell: _step_number_pattern.match(cell.text) is not None)
+    step_number_column_index = cells.index(first_step_number_cell)
+    return step_number_column_index
+
+
+def _get_use_cases(cells: List[_Cell]) -> List[str]:
+    """
+    Extract use cases from the given list of cells.
+    May return empty list, never returns None.
+    """
+    index_of_step_number = _get_index_of_first_column_with_step_number(cells)
+    if index_of_step_number != 0:
+        # "use_cases" are present; This means, that this step must only be applied for certain scenarios,
+        return [c.text for c in cells[0:index_of_step_number]]
+    return []  # we don't return None here because we need something that has a length in the calling code
 
 
 def _read_subsequent_step_cell(cell: _Cell) -> Tuple[bool, Optional[str]]:
@@ -127,6 +150,7 @@ class DocxTableConverter:
         The results are written into rows, sub_rows and multi_step_instructions. Those will be modified.
         """
         upper_lower_iterator = cycle([_EbdSubRowPosition.UPPER, _EbdSubRowPosition.LOWER])
+        use_cases: List[str] = []
         for table_row, sub_row_position in zip(
             table.rows[row_offset:],
             upper_lower_iterator,
@@ -140,24 +164,23 @@ class DocxTableConverter:
                 # we store the text in the local variable for now because we don't yet know the next step number
                 continue
             if sub_row_position == _EbdSubRowPosition.UPPER:
+                use_cases = _get_use_cases(row_cells)
                 # clear list every second entry
                 sub_rows = []
-                step_number = row_cells[self._column_index_step_number].text.strip()
-                description = row_cells[self._column_index_description].text.strip()
+                step_number = row_cells[len(use_cases) + self._column_index_step_number].text.strip()
+                description = row_cells[len(use_cases) + self._column_index_description].text.strip()
             boolean_outcome, subsequent_step_number = _read_subsequent_step_cell(
-                row_cells[self._column_index_check_result]
+                row_cells[len(use_cases) + self._column_index_check_result]
             )
             sub_row = EbdTableSubRow(
                 check_result=EbdCheckResult(subsequent_step_number=subsequent_step_number, result=boolean_outcome),
-                result_code=row_cells[self._column_index_result_code].text.strip() or None,
-                note=row_cells[self._column_index_note].text.strip() or None,
+                result_code=row_cells[len(use_cases) + self._column_index_result_code].text.strip() or None,
+                note=row_cells[len(use_cases) + self._column_index_note].text.strip() or None,
             )
             sub_rows.append(sub_row)
             if sub_row_position == _EbdSubRowPosition.LOWER:
                 row = EbdTableRow(
-                    description=description,
-                    step_number=step_number,
-                    sub_rows=sub_rows,
+                    description=description, step_number=step_number, sub_rows=sub_rows, use_cases=use_cases or None
                 )
                 if "multi_step_instruction_text" in locals():
                     # if the variable with the given name is defined, then we append a multi_step_instruction, once.
