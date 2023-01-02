@@ -105,7 +105,8 @@ class DocxTableConverter:
         self._column_index_check_result: int
         self._column_index_result_code: int
         self._column_index_note: int
-        self._row_index_last_header: Literal[0, 1]  # either 0  or 1
+        self._row_index_last_header: Literal[0, 1] = 1  #: the index of the last table header row
+        # the index of the last header row _could_ by dynamically calculated but so far it has always been 1.
         for row_index in range(0, 2):  # the first two lines/rows are the header of the table.
             # In the constructor we just want to read the metadata from the table.
             # For this purpose the first two lines are enough.
@@ -123,7 +124,7 @@ class DocxTableConverter:
                     self._column_index_step_number = column_index
                     # In most of the cases this will be 1,
                     # but it can be 0 if the first row does _not_ contain the "Prüfende Rolle".
-                    self._row_index_last_header = row_index  # type:ignore[assignment]
+                    # self._row_index_last_header = row_index  # type:ignore[assignment]
                 elif table_cell_text == "Prüfschritt":
                     self._column_index_description = column_index
                 elif table_cell_text == "Prüfergebnis":
@@ -155,7 +156,7 @@ class DocxTableConverter:
             upper_lower_iterator,
         ):
             row_cells = list(_sort_columns_in_row(table_row))
-            if len(row_cells) <= self._column_index_description:
+            if len(row_cells) <= 2:
                 # These are the multi-column rows that span that contain stuff like
                 # "Alle festgestellten Antworten sind anzugeben, soweit im Format möglich (maximal 8 Antwortcodes)*."
                 _ = next(upper_lower_iterator)  # reset the iterator
