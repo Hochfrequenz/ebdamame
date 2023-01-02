@@ -3,20 +3,20 @@ This module converts tables read from the docx file into a format that is easily
 """
 import re
 from enum import Enum
-from itertools import cycle
+from itertools import cycle, groupby
 from typing import Generator, List, Literal, Optional, Tuple
 
 from docx.table import Table, _Cell, _Row  # type:ignore[import]
 from ebdtable2graph.models import EbdTable, EbdTableRow, EbdTableSubRow
-from ebdtable2graph.models.ebd_table import EbdCheckResult, EbdTableMetaData
+from ebdtable2graph.models.ebd_table import EbdCheckResult, EbdTableMetaData, MultiStepInstruction
 from more_itertools import first
 
 
-def _is_pruefende_rolle_cell(cell: _Cell) -> bool:
+def _is_pruefende_rolle_cell_text(text: str) -> bool:
     """ "
-    Returns true iff the cell mentions the market role that is responsible for applying this entscheidungsbaum
+    Returns true iff the given text mentions the market role that is responsible for applying this entscheidungsbaum
     """
-    return cell.text.startswith("Prüfende Rolle: ")
+    return text.startswith("Prüfende Rolle: ")
 
 
 def _sort_columns_in_row(docx_table_row: _Row) -> Generator[_Cell, None, None]:
@@ -82,41 +82,63 @@ class DocxTableConverter:
         self._column_index_check_result: int
         self._column_index_result_code: int
         self._column_index_note: int
-        self._row_index_last_header: Literal[0, 1]  # either 0  or 1
+        self._row_index_last_header: Literal[0, 1] = 1  #: the index of the last table header row
+        # the index of the last header row _could_ by dynamically calculated but so far it has always been 1.
         for row_index in range(0, 2):  # the first two lines/rows are the header of the table.
             # In the constructor we just want to read the metadata from the table.
             # For this purpose the first two lines are enough.
-            for column_index, table_cell in enumerate(first(docx_tables).row_cells(row_index)):
-                if row_index == 0 and _is_pruefende_rolle_cell(table_cell):
-                    role = table_cell.text.split(":")[1].strip()
+            # Now it feels natural, to loop over the cells/columns of the first row, but before we do so, we have to
+            # remove duplicates. Although there are usually only 5 columns visible, technically there might be even 8.
+            # In these cases (e.g. for E_0453) columns like 'Prüfergebnis' simply occur twice in the docx table header.
+            distinct_cell_texts: List[str] = [
+                x[0] for x in groupby(first(docx_tables).row_cells(row_index), lambda cell: cell.text)
+            ]
+            for column_index, table_cell_text in enumerate(distinct_cell_texts):
+                if row_index == 0 and _is_pruefende_rolle_cell_text(table_cell_text):
+                    role = table_cell_text.split(":")[1].strip()
                     break  # because the prüfende rolle is always a full row with identical column cells
-                if table_cell.text == "Nr.":
+                if table_cell_text == "Nr.":
                     self._column_index_step_number = column_index
                     # In most of the cases this will be 1,
                     # but it can be 0 if the first row does _not_ contain the "Prüfende Rolle".
-                    self._row_index_last_header = row_index  # type:ignore[assignment]
-                elif table_cell.text == "Prüfschritt":
+                    # self._row_index_last_header = row_index  # type:ignore[assignment]
+                elif table_cell_text == "Prüfschritt":
                     self._column_index_description = column_index
-                elif table_cell.text == "Prüfergebnis":
+                elif table_cell_text == "Prüfergebnis":
                     self._column_index_check_result = column_index
-                elif table_cell.text == "Code":
+                elif table_cell_text == "Code":
                     self._column_index_result_code = column_index
-                elif table_cell.text == "Hinweis":
+                elif table_cell_text == "Hinweis":
                     self._column_index_note = column_index
         self._metadata = EbdTableMetaData(ebd_code=ebd_key, sub_chapter=sub_chapter, chapter=chapter, role=role)
 
+    # I see that there are quite a few local variables, but honestly see no reason to break it down any further.
+    # pylint:disable=too-many-locals, too-many-arguments
     def _handle_single_table(
-        self, table: Table, row_offset: int, rows: List[EbdTableRow], sub_rows: List[EbdTableSubRow]
+        self,
+        table: Table,
+        multi_step_instructions: List[MultiStepInstruction],
+        row_offset: int,
+        rows: List[EbdTableRow],
+        sub_rows: List[EbdTableSubRow],
     ) -> None:
         """
         Handles a single table (out of possible multiple tables for 1 EBD).
-        The results are written into rows and sub_rows. Those will be modified.
+        The results are written into rows, sub_rows and multi_step_instructions. Those will be modified.
         """
+        upper_lower_iterator = cycle([_EbdSubRowPosition.UPPER, _EbdSubRowPosition.LOWER])
         for table_row, sub_row_position in zip(
             table.rows[row_offset:],
-            cycle([_EbdSubRowPosition.UPPER, _EbdSubRowPosition.LOWER]),
+            upper_lower_iterator,
         ):
             row_cells = list(_sort_columns_in_row(table_row))
+            if len(row_cells) <= 2:
+                # These are the multi-column rows that span that contain stuff like
+                # "Alle festgestellten Antworten sind anzugeben, soweit im Format möglich (maximal 8 Antwortcodes)*."
+                _ = next(upper_lower_iterator)  # reset the iterator
+                multi_step_instruction_text = row_cells[0].text
+                # we store the text in the local variable for now because we don't yet know the next step number
+                continue
             if sub_row_position == _EbdSubRowPosition.UPPER:
                 # clear list every second entry
                 sub_rows = []
@@ -137,6 +159,18 @@ class DocxTableConverter:
                     step_number=step_number,
                     sub_rows=sub_rows,
                 )
+                if "multi_step_instruction_text" in locals():
+                    # if the variable with the given name is defined, then we append a multi_step_instruction, once.
+                    multi_step_instructions.append(
+                        MultiStepInstruction(
+                            instruction_text=multi_step_instruction_text,
+                            # in contrast to the row in which we found the bare multi_step_instruction_text
+                            # we know the step_number here. This is why the detection of the instruction and the append
+                            # are not in the same place.
+                            first_step_number_affected=step_number,
+                        )
+                    )
+                    del multi_step_instruction_text  # prevent adding the same instructions for all following steps
                 rows.append(row)
 
     def convert_docx_tables_to_ebd_table(self) -> EbdTable:
@@ -146,13 +180,11 @@ class DocxTableConverter:
         """
         rows: List[EbdTableRow] = []
         sub_rows: List[EbdTableSubRow] = []
+        multi_step_instructions: List[MultiStepInstruction] = []
         for table_index, table in enumerate(self._docx_tables):
             offset: int = 0
             if table_index == 0:
                 offset = self._row_index_last_header + 1
-            self._handle_single_table(table, offset, rows, sub_rows)
-        result = EbdTable(
-            rows=rows,
-            metadata=self._metadata,
-        )
+            self._handle_single_table(table, multi_step_instructions, offset, rows, sub_rows)
+        result = EbdTable(rows=rows, metadata=self._metadata, multi_step_instructions=multi_step_instructions or None)
         return result
