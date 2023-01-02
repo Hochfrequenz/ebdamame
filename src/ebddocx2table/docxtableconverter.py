@@ -131,7 +131,7 @@ class DocxTableConverter:
             upper_lower_iterator,
         ):
             row_cells = list(_sort_columns_in_row(table_row))
-            if len(row_cells) <= self._column_index_description:
+            if len(row_cells) <= 2:
                 # These are the multi-column rows that span that contain stuff like
                 # "Alle festgestellten Antworten sind anzugeben, soweit im Format möglich (maximal 8 Antwortcodes)*."
                 _ = next(upper_lower_iterator)  # reset the iterator
