@@ -91,6 +91,14 @@ class TestEbdDocx2Table:
                 table_e0462,
                 id="E_0462 with gray outer lefts",
             ),
+            pytest.param(
+                "ebd20221128.docx",
+                "E_0097",
+                "6.4 AD: Lieferbeginn",
+                "6.4.1 E_0462_Prüfen, ob Anmeldung direkt ablehnbar",
+                table_e0462,
+                id="E_0096 contains step numbers with *",
+            ),
         ],
     )
     def test_convert_docx_table_to_ebd_table(
