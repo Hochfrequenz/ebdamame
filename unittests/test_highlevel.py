@@ -129,7 +129,8 @@ class TestEbdDocx2Table:
         # I tried really hard for 1.5 to get the parametrization right and then just gave up and came around with a
         # different approach, called pytest-subtests: https://github.com/pytest-dev/pytest-subtests
         for ebd_key, filename in get_ebd_keys_and_files:
-            with subtests.test(ebd_key):  # this requires pytest-subtests to be installed (see tox.ini)
+            with subtests.test(ebd_key, key=ebd_key, file=filename):
+                # this requires pytest-subtests to be installed (see tox.ini)
                 try:
                     docx_tables = get_ebd_docx_tables(datafiles, filename, ebd_key=ebd_key)
                     converter = DocxTableConverter(
@@ -137,13 +138,29 @@ class TestEbdDocx2Table:
                     )
                     actual = converter.convert_docx_tables_to_ebd_table()
                     assert isinstance(actual, EbdTable)
-                except TableNotFoundError:
-                    pass  # ignore for now
-                except Exception as error:  # for everything which is _not_ a TableNotFoundError
-                    # In the long run, this pokemon catcher shall be removed.
-                    # For not it allows us to quickly get an overview of how well the scraping works for a single docx.
+                # In the long run, all these catchers shall be removed.
+                except TableNotFoundError as tnf_error:
+                    # https://github.com/Hochfrequenz/ebd_docx_to_table/issues/9
+                    pytest.skip(str(tnf_error))
+                except ValueError as value_error:
                     # Simply run the test, then see how many of the subtests pass and which are skipped.
                     # The skipped ones require developer analysis and code improvements.
                     # This library has probably reached v1.0.0 if this catch block is not necessary anymore.
-                    error_msg = f"Error while scraping '{ebd_key}': {str(error)}"
+                    issue_number: str
+                    match value_error.args[0]:
+                        case "None is not in list":
+                            # https://github.com/Hochfrequenz/ebd_docx_to_table/issues/20
+                            issue_number = "20"
+                        case "Exactly one of the entries in sub_rows has to have check_result.result True":
+                            # https://github.com/Hochfrequenz/ebd_docx_to_table/issues/21
+                            issue_number = "21"
+                        case "cannot access local variable 'role' where it is not associated with a value":
+                            # https://github.com/Hochfrequenz/ebd_docx_to_table/issues/22
+                            issue_number = "22"
+                        case "The cell content '--' does not belong to a ja/nein cell":
+                            # https://github.com/Hochfrequenz/ebd_docx_to_table/issues/23
+                            issue_number = "23"
+                        case _:
+                            raise
+                    error_msg = f"Error while scraping '{ebd_key}' (#{issue_number}): {value_error}"
                     pytest.skip(error_msg)
