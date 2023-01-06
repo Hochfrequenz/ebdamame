@@ -166,5 +166,5 @@ class TestEbdDocx2Table:
                             issue_number = "22"
                         case _:
                             raise
-                    error_msg = f"Error while scraping '{ebd_key}' (#{issue_number}): {value_error}"
+                    error_msg = f"Error while scraping '{ebd_key}' (#{issue_number})"
                     pytest.skip(error_msg)
