@@ -8,7 +8,7 @@ from ebddocx2table import TableNotFoundError
 from ebddocx2table.docxtableconverter import DocxTableConverter
 
 from . import get_all_ebd_keys, get_document, get_ebd_docx_tables
-from .examples import table_e0003, table_e0453, table_e0462, table_e0901
+from .examples import table_e0003, table_e0097, table_e0453, table_e0462, table_e0901
 
 
 @pytest.fixture
@@ -96,7 +96,7 @@ class TestEbdDocx2Table:
                 "E_0097",
                 "6.4 AD: Lieferbeginn",
                 "6.4.1 E_0462_Prüfen, ob Anmeldung direkt ablehnbar",
-                table_e0462,
+                table_e0097,
                 id="E_0096 contains step numbers with *",
             ),
         ],

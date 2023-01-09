@@ -56,6 +56,158 @@ table_e0003 = EbdTable(
     ],
 )
 
+# E_0097 is an example of a table that has rows with "*"
+table_e0097 = EbdTable(
+    metadata=EbdTableMetaData(
+        ebd_code="E_0097",
+        chapter="6.4 AD: Lieferbeginn",
+        sub_chapter="6.4.1 E_0462_Prüfen, ob Anmeldung direkt ablehnbar",
+        role="LF",
+    ),
+    rows=[
+        EbdTableRow(
+            step_number="1",
+            description="Entspricht die Gültigkeit (Monat) dem angefragten Zeit-raum?",
+            sub_rows=[
+                EbdTableSubRow(
+                    check_result=EbdCheckResult(result=False, subsequent_step_number=None),
+                    result_code="A01",
+                    note="Cluster: Ablehnung der gesamten Liste\nZeitraum nicht plausibel",
+                ),
+                EbdTableSubRow(
+                    check_result=EbdCheckResult(result=True, subsequent_step_number="2"), result_code=None, note=None
+                ),
+            ],
+            use_cases=None,
+        ),
+        EbdTableRow(
+            step_number="2",
+            description="Entspricht der MaBiS-ZP dem angefragten MaBiS-ZP?",
+            sub_rows=[
+                EbdTableSubRow(
+                    check_result=EbdCheckResult(result=False, subsequent_step_number=None),
+                    result_code="A02",
+                    note="Cluster: Ablehnung der gesamten Liste \nMaBiS-ZP entspricht nicht dem angefragten MaBiS-ZP",
+                ),
+                EbdTableSubRow(
+                    check_result=EbdCheckResult(result=True, subsequent_step_number="3"), result_code=None, note=None
+                ),
+            ],
+            use_cases=None,
+        ),
+        EbdTableRow(
+            step_number="3",
+            description="Entspricht die Versionsangabe in der LF-AACL der Versionsangabe der LF-AASZR, zu der eine LF-AACL angefordert wurde?",
+            sub_rows=[
+                EbdTableSubRow(
+                    check_result=EbdCheckResult(result=False, subsequent_step_number=None),
+                    result_code="A03",
+                    note="Cluster: Ablehnung der gesamten Liste \nVersion nicht zugelassen",
+                ),
+                EbdTableSubRow(
+                    check_result=EbdCheckResult(result=True, subsequent_step_number="4"), result_code=None, note=None
+                ),
+            ],
+            use_cases=None,
+        ),
+        EbdTableRow(
+            step_number="4",
+            description="Ist eine erwartete Marktlokation in der LF-AACL nicht enthalten?",
+            sub_rows=[
+                EbdTableSubRow(
+                    check_result=EbdCheckResult(result=True, subsequent_step_number=None),
+                    result_code="A04",
+                    note="Cluster: Korrekturliste wegen Ablehnung\nZusätzlicher Datensatz / ergänzte Marktlokation",
+                ),
+                EbdTableSubRow(
+                    check_result=EbdCheckResult(result=False, subsequent_step_number="5"), result_code=None, note=None
+                ),
+            ],
+            use_cases=None,
+        ),
+        EbdTableRow(
+            step_number="5",
+            description="Ist in der LF-AACL eine Marktlokation enthalten, die im Bilanzierungsmonat dem LF zur Bilanzierung nicht zugeordnet ist?",
+            sub_rows=[
+                EbdTableSubRow(
+                    check_result=EbdCheckResult(result=True, subsequent_step_number=None),
+                    result_code="A05",
+                    note="Cluster: Korrekturliste wegen Ablehnung\nMarktlokation falschem LF zugeordnet",
+                ),
+                EbdTableSubRow(
+                    check_result=EbdCheckResult(result=False, subsequent_step_number="6"), result_code=None, note=None
+                ),
+            ],
+            use_cases=None,
+        ),
+        EbdTableRow(
+            step_number="6",
+            description="Ist die in der LF-AACL enthaltene Marktlokation dem MaBiS-ZP zugeordnet?",
+            sub_rows=[
+                EbdTableSubRow(
+                    check_result=EbdCheckResult(result=False, subsequent_step_number=None),
+                    result_code="A06",
+                    note="Cluster: Korrekturliste wegen Ablehnung\nZu viele Marktlokationen enthalten / entfallene Marktlokation",
+                ),
+                EbdTableSubRow(
+                    check_result=EbdCheckResult(result=True, subsequent_step_number="7"), result_code=None, note=None
+                ),
+            ],
+            use_cases=None,
+        ),
+        EbdTableRow(
+            step_number="7",
+            description="Entspricht das Bilanzierungsgebiet dem zwischen NB und LF ausgetauschten Bilanzierungsgebiet?",
+            sub_rows=[
+                EbdTableSubRow(
+                    check_result=EbdCheckResult(result=False, subsequent_step_number=None),
+                    result_code="A07",
+                    note="Cluster: Korrekturliste wegen Ablehnung\nBilanzierungsrel. Daten nicht korrekt / fehlen",
+                ),
+                EbdTableSubRow(
+                    check_result=EbdCheckResult(result=True, subsequent_step_number="8"), result_code=None, note=None
+                ),
+            ],
+            use_cases=None,
+        ),
+        EbdTableRow(
+            step_number="8",  # artificially incremented step number (was '7*')
+            description="Entspricht der Bilanzkreis dem zwischen NB und LF ausge-tauschten Bilanzkreis?",
+            sub_rows=[
+                EbdTableSubRow(
+                    check_result=EbdCheckResult(result=False, subsequent_step_number=None),
+                    result_code="A07",
+                    note="Cluster: Korrekturliste wegen Ablehnung\nBilanzierungsrel. Daten nicht korrekt / fehlen",
+                ),
+                EbdTableSubRow(
+                    check_result=EbdCheckResult(result=True, subsequent_step_number="8"), result_code=None, note=None
+                ),
+            ],
+            use_cases=None,
+        ),
+        EbdTableRow(
+            step_number="9",  # artificially incremented step number (was '7*')
+            description="Entspricht die tatsächliche Ausfallarbeitsmenge der er-warteten Ausfallarbeitsmenge?",
+            sub_rows=[
+                EbdTableSubRow(
+                    check_result=EbdCheckResult(result=False, subsequent_step_number=None),
+                    result_code="A07",
+                    note="Cluster: Korrekturliste wegen Ablehnung\nBilanzierungsrel. Daten nicht korrekt / fehlen",
+                ),
+                EbdTableSubRow(
+                    check_result=EbdCheckResult(result=True, subsequent_step_number="Ende"), result_code=None, note=None
+                ),
+            ],
+            use_cases=None,
+        ),
+    ],
+    multi_step_instructions=[
+        MultiStepInstruction(
+            first_step_number_affected="4", instruction_text="Je Marktlokation erfolgen die nachfolgenden Prüfungen:"
+        )
+    ],
+)
+
 # E_0901 spans over multiple pages, let the fun begin
 table_e0901 = EbdTable(
     metadata=EbdTableMetaData(

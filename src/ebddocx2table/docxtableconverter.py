@@ -172,6 +172,14 @@ class DocxTableConverter:
             boolean_outcome, subsequent_step_number = _read_subsequent_step_cell(
                 row_cells[len(use_cases) + self._column_index_check_result]
             )
+            if step_number.endswith("*"):
+                # it's a collection of many questions bundled in one artificial step number that ends with "*"
+                raise NotImplementedError("Todo Jonas oder Olga")
+                # large_step_rows = list(filter(lambda r: r.cells[0].text==step_number, table.rows))
+                # if any(filter(lambda ir: ir[0] > list(table.rows).index(table_row) and
+                # ir[1].cells[len(use_cases) + self._column_index_step_number]!=step_number, enumerate(table.rows))):
+                #    raise NotImplementedError(f"There are steps _after_ {step_number}. This is not implemented yet")
+                # pass
             sub_row = EbdTableSubRow(
                 check_result=EbdCheckResult(subsequent_step_number=subsequent_step_number, result=boolean_outcome),
                 result_code=row_cells[len(use_cases) + self._column_index_result_code].text.strip() or None,
