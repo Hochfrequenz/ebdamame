@@ -7,6 +7,7 @@ from enum import Enum
 from itertools import cycle, groupby
 from typing import Generator, List, Literal, Optional, Tuple
 
+import attrs
 from docx.table import Table, _Cell, _Row  # type:ignore[import]
 from ebdtable2graph.models import EbdTable, EbdTableRow, EbdTableSubRow
 from ebdtable2graph.models.ebd_table import _STEP_NUMBER_REGEX, EbdCheckResult, EbdTableMetaData, MultiStepInstruction
@@ -90,7 +91,7 @@ class _EbdSubRowPosition(Enum):
     LOWER = 2  #: the lower sub row
 
 
-@dataclasses.dataclass
+@attrs.define
 class _EnhancedDocxTableLine:
     """
     A structure that primarily contains a single row from a DOCX table but also meta information about previous and
