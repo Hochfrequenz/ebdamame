@@ -7,7 +7,6 @@ from enum import Enum
 from itertools import cycle, groupby
 from typing import Generator, List, Literal, Optional, Tuple
 
-import attrs
 from docx.table import Table, _Cell, _Row  # type:ignore[import]
 from ebdtable2graph.models import EbdTable, EbdTableRow, EbdTableSubRow
 from ebdtable2graph.models.ebd_table import _STEP_NUMBER_REGEX, EbdCheckResult, EbdTableMetaData, MultiStepInstruction
