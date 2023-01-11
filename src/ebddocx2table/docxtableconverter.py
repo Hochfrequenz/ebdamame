@@ -1,7 +1,6 @@
 """
 This module converts tables read from the docx file into a format that is easily accessible (but still a table).
 """
-import dataclasses
 import re
 from enum import Enum
 from itertools import cycle, groupby
@@ -91,6 +90,7 @@ class _EbdSubRowPosition(Enum):
     LOWER = 2  #: the lower sub row
 
 
+# pylint:disable=too-few-public-methods
 @attrs.define
 class _EnhancedDocxTableLine:
     """
