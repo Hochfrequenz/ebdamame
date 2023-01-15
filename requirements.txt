@@ -5,7 +5,9 @@
 #    pip-compile requirements.in
 #
 attrs==22.1.0
-    # via ebdtable2graph
+    # via
+    #   -r requirements.in
+    #   ebdtable2graph
 certifi==2022.12.7
     # via requests
 charset-normalizer==2.1.1
