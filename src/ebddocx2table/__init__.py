@@ -1,6 +1,7 @@
 """
 Contains high level functions to process .docx files
 """
+import logging
 import re
 from io import BytesIO
 from pathlib import Path
@@ -10,6 +11,8 @@ from docx import Document  # type:ignore[import]
 from docx.oxml import CT_P, CT_Tbl  # type:ignore[import]
 from docx.table import Table  # type:ignore[import]
 from docx.text.paragraph import Paragraph  # type:ignore[import]
+
+_logger = logging.getLogger(__name__)
 
 
 def get_document(docx_file_path: Path) -> Document:
@@ -24,6 +27,7 @@ def get_document(docx_file_path: Path) -> Document:
         # UnicodeDecodeError: 'charmap' codec can't decode byte 0x81 in position 605: character maps to <undefined>
     try:
         document = Document(source_stream)
+        _logger.info("Successfully read the file '%s'", docx_file_path)
         return document
     finally:
         source_stream.close()
@@ -118,4 +122,6 @@ def get_all_ebd_keys(docx_file_path: Path) -> Dict[str, str]:
         ebd_key = match.groupdict()["key"]
         title = match.groupdict()["title"]
         result[ebd_key] = title
+        _logger.debug("Found EBD %s: '%s'", ebd_key, title)
+    _logger.info("%i EBD keys have been found", len(result))
     return result
