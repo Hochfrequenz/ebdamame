@@ -7,12 +7,15 @@
 attrs==22.2.0
     # via
     #   -r requirements.in
+    #   cattrs
     #   ebdtable2graph
+cattrs==22.2.0
+    # via ebdtable2graph
 certifi==2022.12.7
     # via requests
 charset-normalizer==2.1.1
     # via requests
-ebdtable2graph==0.1.5
+ebdtable2graph==0.1.7
     # via -r requirements.in
 idna==3.4
     # via requests
