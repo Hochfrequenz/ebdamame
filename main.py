@@ -90,6 +90,7 @@ def main(input_path: Path, output_path: Path, export_types: list[Literal["puml",
                 _dump_puml(output_path / Path(f"{ebd_key}.puml"), ebd_graph)
                 click.secho(f"💾 Successfully exported '{ebd_key}.puml'")
             except AssertionError as assertion_error:
+                # https://github.com/Hochfrequenz/ebdtable2graph/issues/35
                 click.secho(str(assertion_error), fg="red")
         if "svg" in export_types:
             _dump_svg(output_path / Path(f"{ebd_key}.svg"), ebd_graph)
