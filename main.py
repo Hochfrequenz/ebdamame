@@ -5,7 +5,7 @@ a small click based script to extract all EBDs from a given file.
 # main.py -i unittests/test_data/ebd20221128.docx -o foo -t json -t svg -t puml
 import json
 from pathlib import Path
-from typing import Literal, Set
+from typing import Literal
 
 import cattrs
 import click
