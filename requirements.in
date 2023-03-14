@@ -1,4 +1,5 @@
-ebdtable2graph>=0.1.5
+ebdtable2graph>=0.1.7
 python-docx
 more_itertools
 attrs
+click
