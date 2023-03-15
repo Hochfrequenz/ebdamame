@@ -2,7 +2,9 @@
 a small click based script to extract all EBDs from a given file.
 """
 # invoke like this:
-# main.py -i unittests/test_data/ebd20221128.docx -o foo -t json -t svg -t puml
+# main.py -i unittests/test_data/ebd20221128.docx
+#  -o ../machine-readable_entscheidungsbaumdiagramme/FV2304
+#  -t json -t dot -t svg -t puml
 import json
 from pathlib import Path
 from typing import Literal
@@ -80,16 +82,20 @@ def main(input_path: Path, output_path: Path, export_types: list[Literal["puml",
         try:
             docx_tables = get_ebd_docx_tables(docx_file_path=input_path, ebd_key=ebd_key)
         except TableNotFoundError as table_not_found_error:
-            click.secho(f"Error while scraping {ebd_key}: {str(table_not_found_error)}; Skip!", fg="red")
+            click.secho(f"Table not found: {ebd_key}: {str(table_not_found_error)}; Skip!", fg="red")
             continue
         try:
             converter = DocxTableConverter(
                 docx_tables, ebd_key=ebd_key, chapter="Dummy Chapter", sub_chapter="Dummy Subchapter"
             )
             ebd_table = converter.convert_docx_tables_to_ebd_table()
+        except Exception as scraping_error:  # pylint:disable=broad-except
+            click.secho(f"Error while scraping {ebd_key}: {str(scraping_error)}; Skip!", fg="red")
+            continue
+        try:
             ebd_graph = convert_table_to_graph(ebd_table)
-        except Exception as error:  # pylint:disable=broad-except
-            click.secho(f"Error while converting {ebd_key}: {str(error)}; Skip!", fg="red")
+        except Exception as graphing_error:  # pylint:disable=broad-except
+            click.secho(f"Error while graphing {ebd_key}: {str(graphing_error)}; Skip!", fg="red")
             continue
         if "puml" in export_types:
             try:
