@@ -24,6 +24,12 @@ def _dump_puml(puml_path: Path, ebd_graph: EbdGraph) -> None:
         uml_file.write(plantuml_code)
 
 
+def _dump_dot(dot_path: Path, ebd_graph: EbdGraph) -> None:
+    dot_code = convert_graph_to_dot(ebd_graph)
+    with open(dot_path, "w+", encoding="utf-8") as uml_file:
+        uml_file.write(dot_code)
+
+
 def _dump_svg(svg_path: Path, ebd_graph: EbdGraph) -> None:
     dot_code = convert_graph_to_dot(ebd_graph)
     svg_code = convert_dot_to_svg_kroki(dot_code)
@@ -55,11 +61,11 @@ def _dump_json(json_path: Path, ebd_table: EbdTable) -> None:
 @click.option(
     "-t",
     "--export_types",
-    type=click.Choice(["puml", "json", "svg"], case_sensitive=False),
+    type=click.Choice(["puml", "dot", "json", "svg"], case_sensitive=False),
     multiple=True,
     help="Choose which file you'd like to create",
 )
-def main(input_path: Path, output_path: Path, export_types: list[Literal["puml", "json", "svg"]]):
+def main(input_path: Path, output_path: Path, export_types: list[Literal["puml", "dot", "json", "svg"]]):
     """
     A program to get a machine-readable version of the AHBs docx files published by edi@energy.
     """
@@ -92,6 +98,9 @@ def main(input_path: Path, output_path: Path, export_types: list[Literal["puml",
             except AssertionError as assertion_error:
                 # https://github.com/Hochfrequenz/ebdtable2graph/issues/35
                 click.secho(str(assertion_error), fg="red")
+        if "dot" in export_types:
+            _dump_dot(output_path / Path(f"{ebd_key}.dot"), ebd_graph)
+            click.secho(f"💾 Successfully exported '{ebd_key}.dot'")
         if "svg" in export_types:
             _dump_svg(output_path / Path(f"{ebd_key}.svg"), ebd_graph)
             click.secho(f"💾 Successfully exported '{ebd_key}.svg'")
