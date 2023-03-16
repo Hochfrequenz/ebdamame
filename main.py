@@ -84,11 +84,12 @@ def main(input_path: Path, output_path: Path, export_types: list[Literal["puml",
         except TableNotFoundError as table_not_found_error:
             click.secho(f"Table not found: {ebd_key}: {str(table_not_found_error)}; Skip!", fg="red")
             continue
+        assert ebd_kapitel is not None
         try:
             converter = DocxTableConverter(
                 docx_tables,
                 ebd_key=ebd_key,
-                chapter=ebd_kapitel.chapter_title,
+                chapter=ebd_kapitel.chapter_title,  # type:ignore[arg-type]
                 # pylint:disable=line-too-long
                 sub_chapter=f"{ebd_kapitel.chapter}.{ebd_kapitel.section}.{ebd_kapitel.subsection}: {ebd_kapitel.section_title}",
             )
