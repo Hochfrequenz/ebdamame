@@ -4,7 +4,7 @@ import pytest  # type:ignore[import]
 from docx.table import Table  # type:ignore[import]
 from ebdtable2graph.models import EbdTable
 
-from ebddocx2table import TableNotFoundError
+from ebddocx2table import EbdChapterInformation, TableNotFoundError
 from ebddocx2table.docxtableconverter import DocxTableConverter
 
 from . import get_all_ebd_keys, get_document, get_ebd_docx_tables
@@ -31,12 +31,30 @@ class TestEbdDocx2Table:
 
     @pytest.mark.datafiles("unittests/test_data/ebd20221128.docx")
     @pytest.mark.parametrize(
-        "filename,expected_length",
-        [pytest.param("ebd20221128.docx", 241)],
+        "filename,expected_length,expected_entries",
+        [
+            pytest.param(
+                "ebd20221128.docx",
+                241,
+                [
+                    # arbitrary check ("Stichproben") only
+                    ("Kündigung Stromliefervertrag prüfen", EbdChapterInformation(chapter=6, section=1, subsection=1)),
+                    ("MaBiS-ZP Aktivierung prüfen", EbdChapterInformation(chapter=7, section=2, subsection=1)),
+                    (
+                        "Datenstatus nach Eingang einer AAÜZ vergeben",
+                        EbdChapterInformation(chapter=7, section=61, subsection=2),
+                    ),
+                ],
+            )
+        ],
     )
-    def test_get_ebd_keys(self, datafiles, filename: str, expected_length: int):
+    def test_get_ebd_keys(
+        self, datafiles, filename: str, expected_length: int, expected_entries: List[Tuple[str, EbdChapterInformation]]
+    ):
         actual = get_all_ebd_keys(datafiles, filename)
         assert len(actual) == expected_length  # arbitrary, didn't check if these are really _all_ the keys
+        for expected_entry in expected_entries:
+            assert expected_entry in actual.values()
 
     @pytest.mark.datafiles("unittests/test_data/ebd20221128.docx")
     @pytest.mark.parametrize(
