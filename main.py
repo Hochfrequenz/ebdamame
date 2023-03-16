@@ -89,6 +89,7 @@ def main(input_path: Path, output_path: Path, export_types: list[Literal["puml",
                 docx_tables,
                 ebd_key=ebd_key,
                 chapter=ebd_kapitel.chapter_title,
+                # pylint:disable=line-too-long
                 sub_chapter=f"{ebd_kapitel.chapter}.{ebd_kapitel.section}.{ebd_kapitel.subsection}: {ebd_kapitel.section_title}",
             )
             ebd_table = converter.convert_docx_tables_to_ebd_table()
