@@ -78,7 +78,7 @@ def main(input_path: Path, output_path: Path, export_types: list[Literal["puml",
         click.secho(f"Created a new directory at {output_path}", fg="yellow")
     all_ebd_keys = get_all_ebd_keys(input_path)
     for ebd_key, (ebd_title, ebd_kapitel) in all_ebd_keys.items():
-        click.secho(f"Processing EBD '{ebd_key}' ({ebd_title})")
+        click.secho(f"Processing EBD {ebd_kapitel} '{ebd_key}' ({ebd_title})")
         try:
             docx_tables = get_ebd_docx_tables(docx_file_path=input_path, ebd_key=ebd_key)
         except TableNotFoundError as table_not_found_error:
