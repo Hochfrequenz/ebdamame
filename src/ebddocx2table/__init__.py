@@ -1,12 +1,14 @@
 """
 Contains high level functions to process .docx files
 """
+import itertools
 import logging
 import re
 from io import BytesIO
 from pathlib import Path
-from typing import Dict, Generator, List, Union
+from typing import Dict, Generator, Iterable, List, Tuple, Union
 
+import attrs
 from docx import Document  # type:ignore[import]
 from docx.oxml import CT_P, CT_Tbl  # type:ignore[import]
 from docx.table import Table  # type:ignore[import]
@@ -107,21 +109,72 @@ def get_ebd_docx_tables(docx_file_path: Path, ebd_key: str) -> List[Table]:
     return tables
 
 
-def get_all_ebd_keys(docx_file_path: Path) -> Dict[str, str]:
+# pylint:disable=too-few-public-methods
+@attrs.define(kw_only=True, frozen=True)
+class EbdChapterInformation:
+    """
+    Contains information about where an EBD is located within the document.
+    If the heading is e.g. "5.2.1" we denote this as:
+    * chapter 5
+    * section 2
+    * subsection 1
+    """
+
+    chapter: int = attrs.field(
+        validator=attrs.validators.and_(attrs.validators.instance_of(int), attrs.validators.ge(1))
+    )
+    section: int = attrs.field(
+        validator=attrs.validators.and_(attrs.validators.instance_of(int), attrs.validators.ge(1))
+    )
+    subsection: int = attrs.field(
+        validator=attrs.validators.and_(attrs.validators.instance_of(int), attrs.validators.ge(1))
+    )
+
+    def __str__(self):
+        return f"{self.chapter}.{self.section}.{self.subsection}"
+
+
+def _enrich_paragraphs_with_sections(
+    paragraphs: Iterable[Paragraph],
+) -> Generator[Tuple[Paragraph, EbdChapterInformation], None, None]:
+    """
+    Yield each paragraph + the "Kapitel" in which it is found.
+    """
+    chapter_counter = itertools.count(start=1)
+    chapter = 1
+    section_counter = itertools.count(start=1)
+    section = 1
+    subsection_counter = itertools.count(start=1)
+    subsection = 1
+    for paragraph in paragraphs:
+        match paragraph.style.style_id:
+            case "berschrift1":
+                chapter = next(chapter_counter)
+                section_counter = itertools.count(start=1)
+                subsection_counter = itertools.count(start=1)
+            case "berschrift2":
+                section = next(section_counter)
+                subsection_counter = itertools.count(start=1)
+            case "berschrift3":
+                subsection = next(subsection_counter)
+        yield paragraph, EbdChapterInformation(chapter=chapter, section=section, subsection=subsection)
+
+
+def get_all_ebd_keys(docx_file_path: Path) -> Dict[str, Tuple[str, EbdChapterInformation]]:
     """
     Extract all EBD keys from the given file.
     Returns a dictionary with all EBD keys as keys and the respective EBD titles as values.
     E.g. key: "E_0003", value: "Bestellung der Aggregationsebene RZ prüfen"
     """
     document = get_document(docx_file_path)
-    result: Dict[str, str] = {}
-    for paragraph in document.paragraphs:
+    result: Dict[str, Tuple[str, EbdChapterInformation]] = {}
+    for paragraph, ebd_kapitel in _enrich_paragraphs_with_sections(document.paragraphs):
         match = _ebd_key_with_heading_pattern.match(paragraph.text)
         if match is None:
             continue
         ebd_key = match.groupdict()["key"]
         title = match.groupdict()["title"]
-        result[ebd_key] = title
-        _logger.debug("Found EBD %s: '%s'", ebd_key, title)
+        result[ebd_key] = (title, ebd_kapitel)
+        _logger.debug("Found EBD %s: '%s' (%s)", ebd_key, title, ebd_kapitel)
     _logger.info("%i EBD keys have been found", len(result))
     return result
