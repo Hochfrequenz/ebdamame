@@ -38,11 +38,38 @@ class TestEbdDocx2Table:
                 241,
                 [
                     # arbitrary checks ("Stichproben") only
-                    ("Kündigung Stromliefervertrag prüfen", EbdChapterInformation(chapter=6, section=1, subsection=1)),
-                    ("MaBiS-ZP Aktivierung prüfen", EbdChapterInformation(chapter=7, section=2, subsection=1)),
+                    (
+                        "Kündigung Stromliefervertrag prüfen",
+                        EbdChapterInformation(
+                            chapter=6,
+                            chapter_title="GPKE",
+                            section=1,
+                            section_title="AD: Kündigung",
+                            subsection=1,
+                            subsection_title="E_0400_Kündigung Stromliefervertrag prüfen",
+                        ),
+                    ),
+                    (
+                        "MaBiS-ZP Aktivierung prüfen",
+                        EbdChapterInformation(
+                            chapter=7,
+                            chapter_title="MaBiS",
+                            section=2,
+                            section_title="AD: Aktivierung eines MaBiS-Zählpunkts für die Netzzeitreihe an BIKO",
+                            subsection=1,
+                            subsection_title="E_0024_MaBiS-ZP Aktivierung prüfen",
+                        ),
+                    ),
                     (
                         "Datenstatus nach Eingang einer AAÜZ vergeben",
-                        EbdChapterInformation(chapter=7, section=61, subsection=2),
+                        EbdChapterInformation(
+                            chapter=7,
+                            chapter_title="MaBiS",
+                            section=61,
+                            section_title="AD: Übermittlung Datenstatus für die monatliche Ausfallarbeitsüberführungszeitreihe (AAÜZ) an NB und BKV(LF)",
+                            subsection=2,
+                            subsection_title="E_0076_Datenstatus nach Eingang einer AAÜZ vergeben",
+                        ),
                     ),
                 ],
             )
@@ -53,8 +80,9 @@ class TestEbdDocx2Table:
     ):
         actual = get_all_ebd_keys(datafiles, filename)
         assert len(actual) == expected_length  # arbitrary, didn't check if these are really _all_ the keys
+        kapitels = sorted(actual.values(), key=lambda k: (k[1].chapter, k[1].section, k[1].subsection))
         for expected_entry in expected_entries:
-            assert expected_entry in actual.values()
+            assert expected_entry in kapitels
 
     @pytest.mark.datafiles("unittests/test_data/ebd20221128.docx")
     @pytest.mark.parametrize(

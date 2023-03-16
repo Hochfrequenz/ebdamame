@@ -6,7 +6,7 @@ import logging
 import re
 from io import BytesIO
 from pathlib import Path
-from typing import Dict, Generator, Iterable, List, Tuple, Union
+from typing import Dict, Generator, Iterable, List, Optional, Tuple, Union
 
 import attrs
 from docx import Document  # type:ignore[import]
@@ -123,15 +123,19 @@ class EbdChapterInformation:
     chapter: int = attrs.field(
         validator=attrs.validators.and_(attrs.validators.instance_of(int), attrs.validators.ge(1))
     )
+    chapter_title: Optional[str] = attrs.field(validator=attrs.validators.optional(attrs.validators.instance_of(str)))
     section: int = attrs.field(
         validator=attrs.validators.and_(attrs.validators.instance_of(int), attrs.validators.ge(1))
     )
+
+    section_title: Optional[str] = attrs.field(validator=attrs.validators.optional(attrs.validators.instance_of(str)))
     subsection: int = attrs.field(
         validator=attrs.validators.and_(attrs.validators.instance_of(int), attrs.validators.ge(1))
     )
 
-    def __str__(self):
-        return f"{self.chapter}.{self.section}.{self.subsection}"
+    subsection_title: Optional[str] = attrs.field(
+        validator=attrs.validators.optional(attrs.validators.instance_of(str))
+    )
 
 
 def _enrich_paragraphs_with_sections(
@@ -142,22 +146,40 @@ def _enrich_paragraphs_with_sections(
     """
     chapter_counter = itertools.count(start=1)
     chapter = 1
+    chapter_title: Optional[str] = None
     section_counter = itertools.count(start=1)
     section = 1
+    section_title: Optional[str] = None
     subsection_counter = itertools.count(start=1)
     subsection = 1
+    subsection_title: Optional[str] = None
     for paragraph in paragraphs:
         match paragraph.style.style_id:
             case "berschrift1":
                 chapter = next(chapter_counter)
+                chapter_title = paragraph.text.strip()
                 section_counter = itertools.count(start=1)
+                section_title = None
                 subsection_counter = itertools.count(start=1)
+                subsection_title = None
             case "berschrift2":
                 section = next(section_counter)
+                section_title = paragraph.text.strip()
                 subsection_counter = itertools.count(start=1)
+                subsection_title = None
             case "berschrift3":
                 subsection = next(subsection_counter)
-        yield paragraph, EbdChapterInformation(chapter=chapter, section=section, subsection=subsection)
+                subsection_title = paragraph.text.strip()
+        location = EbdChapterInformation(
+            chapter=chapter,
+            section=section,
+            subsection=subsection,
+            chapter_title=chapter_title,
+            section_title=section_title,
+            subsection_title=subsection_title,
+        )
+        _logger.debug("Handling Paragraph %i.%i.%i", chapter, section, subsection)
+        yield paragraph, location
 
 
 def get_all_ebd_keys(docx_file_path: Path) -> Dict[str, Tuple[str, EbdChapterInformation]]:
