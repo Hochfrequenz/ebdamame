@@ -109,6 +109,7 @@ def get_ebd_docx_tables(docx_file_path: Path, ebd_key: str) -> List[Table]:
     return tables
 
 
+# pylint:disable=too-few-public-methods
 @attrs.define(kw_only=True, frozen=True)
 class EbdChapterInformation:
     """

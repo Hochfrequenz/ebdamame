@@ -37,7 +37,7 @@ class TestEbdDocx2Table:
                 "ebd20221128.docx",
                 241,
                 [
-                    # arbitrary check ("Stichproben") only
+                    # arbitrary checks ("Stichproben") only
                     ("Kündigung Stromliefervertrag prüfen", EbdChapterInformation(chapter=6, section=1, subsection=1)),
                     ("MaBiS-ZP Aktivierung prüfen", EbdChapterInformation(chapter=7, section=2, subsection=1)),
                     (
