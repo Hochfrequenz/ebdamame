@@ -1,15 +1,19 @@
 """
 This module converts tables read from the docx file into a format that is easily accessible (but still a table).
 """
+import logging
 import re
 from enum import Enum
 from itertools import cycle, groupby
 from typing import Generator, List, Literal, Optional, Tuple
 
+import attrs
 from docx.table import Table, _Cell, _Row  # type:ignore[import]
 from ebdtable2graph.models import EbdTable, EbdTableRow, EbdTableSubRow
 from ebdtable2graph.models.ebd_table import _STEP_NUMBER_REGEX, EbdCheckResult, EbdTableMetaData, MultiStepInstruction
 from more_itertools import first, first_true
+
+_logger = logging.getLogger(__name__)
 
 
 def _is_pruefende_rolle_cell_text(text: str) -> bool:
@@ -40,6 +44,7 @@ def _get_index_of_first_column_with_step_number(cells: List[_Cell]) -> int:
     """
     first_step_number_cell = first_true(cells, pred=lambda cell: _step_number_pattern.match(cell.text) is not None)
     step_number_column_index = cells.index(first_step_number_cell)
+    _logger.debug("The step number is in column %i", step_number_column_index)
     return step_number_column_index
 
 
@@ -49,10 +54,14 @@ def _get_use_cases(cells: List[_Cell]) -> List[str]:
     May return empty list, never returns None.
     """
     index_of_step_number = _get_index_of_first_column_with_step_number(cells)
+    use_cases: List[str]
     if index_of_step_number != 0:
         # "use_cases" are present; This means, that this step must only be applied for certain scenarios,
-        return [c.text for c in cells[0:index_of_step_number]]
-    return []  # we don't return None here because we need something that has a length in the calling code
+        use_cases = [c.text for c in cells[0:index_of_step_number]]
+    else:
+        use_cases = []
+    _logger.debug("%i use cases have been found", len(use_cases))
+    return use_cases  # we don't return None here because we need something that has a length in the calling code
 
 
 def _read_subsequent_step_cell(cell: _Cell) -> Tuple[bool, Optional[str]]:
@@ -87,6 +96,39 @@ class _EbdSubRowPosition(Enum):
 
     UPPER = 1  #: the upper sub row
     LOWER = 2  #: the lower sub row
+
+
+# pylint:disable=too-few-public-methods
+@attrs.define
+class _EnhancedDocxTableLine:
+    """
+    A structure that primarily contains a single row from a DOCX table but also meta information about previous and
+    following elements in the table. It gathers information that are not directly accessible when only looking at one
+    single row.
+    """
+
+    row: _Row = attrs.field(validator=attrs.validators.instance_of(_Row))
+    """
+    The row that is currently being processed
+    """
+    sub_row_position: _EbdSubRowPosition = attrs.field(validator=attrs.validators.instance_of(_EbdSubRowPosition))
+    """
+    denotes if row is an upper/lower sub row
+    """
+    cells: List[_Cell] = attrs.field(
+        validator=attrs.validators.deep_iterable(
+            member_validator=attrs.validators.instance_of(_Cell), iterable_validator=attrs.validators.instance_of(list)
+        )
+    )
+    """
+    the (sanitized) cells of the row
+    """
+    multi_step_instruction_text: Optional[str] = attrs.field(
+        validator=attrs.validators.optional(attrs.validators.instance_of(str))
+    )
+    """
+    a multistep instruction text that may be applicable to this row (if not None)
+    """
 
 
 # pylint: disable=too-few-public-methods, too-many-instance-attributes
@@ -135,22 +177,15 @@ class DocxTableConverter:
                     self._column_index_note = column_index
         self._metadata = EbdTableMetaData(ebd_code=ebd_key, sub_chapter=sub_chapter, chapter=chapter, role=role)
 
-    # I see that there are quite a few local variables, but honestly see no reason to break it down any further.
-    # pylint:disable=too-many-locals, too-many-arguments
-    def _handle_single_table(
-        self,
-        table: Table,
-        multi_step_instructions: List[MultiStepInstruction],
-        row_offset: int,
-        rows: List[EbdTableRow],
-        sub_rows: List[EbdTableSubRow],
-    ) -> None:
+    @staticmethod
+    def _enhance_list_view(table: Table, row_offset: int) -> List[_EnhancedDocxTableLine]:
         """
-        Handles a single table (out of possible multiple tables for 1 EBD).
-        The results are written into rows, sub_rows and multi_step_instructions. Those will be modified.
+        Loop over the given table and enhance the table rows with additional information.
+        It spares the main loop in _handle_single_table from peeking ahead or looking back.
         """
+        result: List[_EnhancedDocxTableLine] = []
         upper_lower_iterator = cycle([_EbdSubRowPosition.UPPER, _EbdSubRowPosition.LOWER])
-        use_cases: List[str] = []
+        multi_step_instruction_text: Optional[str] = None
         for table_row, sub_row_position in zip(
             table.rows[row_offset:],
             upper_lower_iterator,
@@ -163,14 +198,40 @@ class DocxTableConverter:
                 multi_step_instruction_text = row_cells[0].text
                 # we store the text in the local variable for now because we don't yet know the next step number
                 continue
-            if sub_row_position == _EbdSubRowPosition.UPPER:
-                use_cases = _get_use_cases(row_cells)
-                # clear list every second entry
-                sub_rows = []
-                step_number = row_cells[len(use_cases) + self._column_index_step_number].text.strip()
-                description = row_cells[len(use_cases) + self._column_index_description].text.strip()
+            result.append(
+                _EnhancedDocxTableLine(
+                    row=table_row,
+                    sub_row_position=sub_row_position,
+                    multi_step_instruction_text=multi_step_instruction_text,
+                    cells=row_cells,
+                )
+            )
+            multi_step_instruction_text = None
+        return result
+
+    # I see that there are quite a few local variables, but honestly see no reason to break it down any further.
+    # pylint:disable=too-many-arguments
+    def _handle_single_table(
+        self,
+        table: Table,
+        multi_step_instructions: List[MultiStepInstruction],
+        row_offset: int,
+        rows: List[EbdTableRow],
+        sub_rows: List[EbdTableSubRow],
+    ) -> None:
+        """
+        Handles a single table (out of possible multiple tables for 1 EBD).
+        The results are written into rows, sub_rows and multi_step_instructions. Those will be modified.
+        """
+        use_cases: List[str] = []
+        for enhanced_table_row in self._enhance_list_view(table=table, row_offset=row_offset):
+            if enhanced_table_row.sub_row_position == _EbdSubRowPosition.UPPER:
+                use_cases = _get_use_cases(enhanced_table_row.cells)
+                sub_rows = []  # clear list every second entry
+                step_number = enhanced_table_row.cells[len(use_cases) + self._column_index_step_number].text.strip()
+                description = enhanced_table_row.cells[len(use_cases) + self._column_index_description].text.strip()
             boolean_outcome, subsequent_step_number = _read_subsequent_step_cell(
-                row_cells[len(use_cases) + self._column_index_check_result]
+                enhanced_table_row.cells[len(use_cases) + self._column_index_check_result]
             )
             if step_number.endswith("*"):
                 # it's a collection of many questions bundled in one artificial step number that ends with "*"
@@ -182,27 +243,30 @@ class DocxTableConverter:
                 # pass
             sub_row = EbdTableSubRow(
                 check_result=EbdCheckResult(subsequent_step_number=subsequent_step_number, result=boolean_outcome),
-                result_code=row_cells[len(use_cases) + self._column_index_result_code].text.strip() or None,
-                note=row_cells[len(use_cases) + self._column_index_note].text.strip() or None,
+                result_code=enhanced_table_row.cells[len(use_cases) + self._column_index_result_code].text.strip()
+                or None,
+                note=enhanced_table_row.cells[len(use_cases) + self._column_index_note].text.strip() or None,
+            )
+            _logger.debug(
+                "Successfully read sub row %s/%s", sub_row.result_code or subsequent_step_number, boolean_outcome
             )
             sub_rows.append(sub_row)
-            if sub_row_position == _EbdSubRowPosition.LOWER:
+            if enhanced_table_row.sub_row_position == _EbdSubRowPosition.LOWER:
                 row = EbdTableRow(
-                    description=description, step_number=step_number, sub_rows=sub_rows, use_cases=use_cases or None
+                    description=description,
+                    step_number=step_number,
+                    sub_rows=sub_rows,
+                    use_cases=use_cases or None,
                 )
-                if "multi_step_instruction_text" in locals():
-                    # if the variable with the given name is defined, then we append a multi_step_instruction, once.
-                    multi_step_instructions.append(
-                        MultiStepInstruction(
-                            instruction_text=multi_step_instruction_text,
-                            # in contrast to the row in which we found the bare multi_step_instruction_text
-                            # we know the step_number here. This is why the detection of the instruction and the append
-                            # are not in the same place.
-                            first_step_number_affected=step_number,
-                        )
-                    )
-                    del multi_step_instruction_text  # prevent adding the same instructions for all following steps
                 rows.append(row)
+                _logger.debug("Successfully read row #%s ('%s')", step_number, description)
+            if enhanced_table_row.multi_step_instruction_text:
+                multi_step_instructions.append(
+                    MultiStepInstruction(
+                        first_step_number_affected=step_number,
+                        instruction_text=enhanced_table_row.multi_step_instruction_text,
+                    )
+                )
 
     def convert_docx_tables_to_ebd_table(self) -> EbdTable:
         """
@@ -218,4 +282,5 @@ class DocxTableConverter:
                 offset = self._row_index_last_header + 1
             self._handle_single_table(table, multi_step_instructions, offset, rows, sub_rows)
         result = EbdTable(rows=rows, metadata=self._metadata, multi_step_instructions=multi_step_instructions or None)
+        _logger.info("Successfully created an EbdTable for EBD '%s'", result.metadata.ebd_code)
         return result
