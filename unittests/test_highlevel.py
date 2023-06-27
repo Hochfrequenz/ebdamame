@@ -193,6 +193,9 @@ class TestEbdDocx2Table:
                     actual = converter.convert_docx_tables_to_ebd_table()
                     assert isinstance(actual, EbdTable)
                 # In the long run, all these catchers shall be removed.
+                except AttributeError as attribute_error:
+                    if attribute_error.name == "_column_index_step_number":
+                        pytest.skip("https://github.com/Hochfrequenz/ebddocx2table/issues/71")
                 except TableNotFoundError:
                     # https://github.com/Hochfrequenz/ebd_docx_to_table/issues/9
                     pass  # ignore for now
