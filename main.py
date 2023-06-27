@@ -2,7 +2,7 @@
 a small click based script to extract all EBDs from a given file.
 """
 # invoke like this:
-# main.py -i unittests/test_data/ebd20221128.docx
+# main.py -i unittests/test_data/ebd20230619.docx
 #  -o ../machine-readable_entscheidungsbaumdiagramme/FV2304
 #  -t json -t dot -t svg -t puml
 import json
