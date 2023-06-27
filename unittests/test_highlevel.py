@@ -24,12 +24,14 @@ class TestEbdDocx2Table:
     """
 
     @pytest.mark.datafiles("unittests/test_data/ebd20221128.docx")
-    @pytest.mark.parametrize("filename", ["ebd20221128.docx"])
+    @pytest.mark.datafiles("unittests/test_data/ebd20230619.docx")
+    @pytest.mark.parametrize("filename", ["ebd20221128.docx", "ebd20230619.docx"])
     def test_can_read_document(self, datafiles, filename: str):
         actual = get_document(datafiles, filename)
         assert actual is not None
 
     @pytest.mark.datafiles("unittests/test_data/ebd20221128.docx")
+    @pytest.mark.datafiles("unittests/test_data/ebd20230619.docx")
     @pytest.mark.parametrize(
         "filename,expected_length,expected_entries",
         [
@@ -72,7 +74,8 @@ class TestEbdDocx2Table:
                         ),
                     ),
                 ],
-            )
+            ),
+            pytest.param("ebd20230619.docx", 249, []),  # number is not double-checked yet
         ],
     )
     def test_get_ebd_keys(
@@ -148,11 +151,15 @@ class TestEbdDocx2Table:
         assert actual == expected
 
     @pytest.mark.datafiles("unittests/test_data/ebd20221128.docx")
+    @pytest.mark.datafiles("unittests/test_data/ebd20230619.docx")
     @pytest.mark.parametrize(
         "get_ebd_keys_and_files",
         [
             pytest.param(
                 "ebd20221128.docx",  # this is used as positional argument for the indirect fixture
+            ),
+            pytest.param(
+                "ebd20230619.docx",  # this is used as positional argument for the indirect fixture
             ),
         ],
         indirect=["get_ebd_keys_and_files"],  # see `def get_ebd_keys_and_files(datafiles, request)`
@@ -186,6 +193,9 @@ class TestEbdDocx2Table:
                     actual = converter.convert_docx_tables_to_ebd_table()
                     assert isinstance(actual, EbdTable)
                 # In the long run, all these catchers shall be removed.
+                except AttributeError as attribute_error:
+                    if attribute_error.name == "_column_index_step_number":
+                        pytest.skip("https://github.com/Hochfrequenz/ebddocx2table/issues/71")
                 except TableNotFoundError:
                     # https://github.com/Hochfrequenz/ebd_docx_to_table/issues/9
                     pass  # ignore for now
