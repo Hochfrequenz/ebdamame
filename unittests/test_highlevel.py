@@ -24,12 +24,14 @@ class TestEbdDocx2Table:
     """
 
     @pytest.mark.datafiles("unittests/test_data/ebd20221128.docx")
-    @pytest.mark.parametrize("filename", ["ebd20221128.docx"])
+    @pytest.mark.datafiles("unittests/test_data/ebd20230619.docx")
+    @pytest.mark.parametrize("filename", ["ebd20221128.docx", "ebd20230619.docx"])
     def test_can_read_document(self, datafiles, filename: str):
         actual = get_document(datafiles, filename)
         assert actual is not None
 
     @pytest.mark.datafiles("unittests/test_data/ebd20221128.docx")
+    @pytest.mark.datafiles("unittests/test_data/ebd20230619.docx")
     @pytest.mark.parametrize(
         "filename,expected_length,expected_entries",
         [
@@ -72,7 +74,8 @@ class TestEbdDocx2Table:
                         ),
                     ),
                 ],
-            )
+            ),
+            pytest.param("ebd20230619.docx", 249, []),  # number is not double-checked yet
         ],
     )
     def test_get_ebd_keys(
