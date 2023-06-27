@@ -151,11 +151,15 @@ class TestEbdDocx2Table:
         assert actual == expected
 
     @pytest.mark.datafiles("unittests/test_data/ebd20221128.docx")
+    @pytest.mark.datafiles("unittests/test_data/ebd20230619.docx")
     @pytest.mark.parametrize(
         "get_ebd_keys_and_files",
         [
             pytest.param(
                 "ebd20221128.docx",  # this is used as positional argument for the indirect fixture
+            ),
+            pytest.param(
+                "ebd20230619.docx",  # this is used as positional argument for the indirect fixture
             ),
         ],
         indirect=["get_ebd_keys_and_files"],  # see `def get_ebd_keys_and_files(datafiles, request)`
