@@ -222,6 +222,9 @@ class TestEbdDocx2Table:
                         case "The cell content '--' does not belong to a ja/nein cell":
                             # https://github.com/Hochfrequenz/ebd_docx_to_table/issues/23
                             issue_number = "23"
+                        case "The cell content 'gültiges daten-ergebnis' does not belong to a ja/nein cell":
+                            # https://github.com/Hochfrequenz/ebd_docx_to_table/issues/74
+                            issue_number = "74"
                         case _:
                             raise
                 except UnboundLocalError as unbound_error:
