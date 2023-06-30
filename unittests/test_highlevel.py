@@ -107,6 +107,57 @@ class TestEbdDocx2Table:
         for table in actual:
             assert isinstance(table, Table)
 
+    @pytest.mark.datafiles("unittests/test_data/ebd20230629_v34.docx")
+    @pytest.mark.parametrize(
+        "filename, ebd_key",
+        [
+            pytest.param("ebd20230629_v34.docx", "E_0406", id="E_0406: EB-Table starts after pages of text"),
+        ],
+    )
+    def test_finding_tables_positive(self, datafiles, filename: str, ebd_key: str):
+        docx_tables = get_ebd_docx_tables(datafiles, filename, ebd_key=ebd_key)
+        converter = DocxTableConverter(
+            docx_tables, ebd_key=ebd_key, chapter="Dummy Chapter", sub_chapter="Dummy Subchapter"
+        )
+        actual = converter.convert_docx_tables_to_ebd_table()  # must not throw TableNotFoundError
+        assert isinstance(actual, EbdTable)
+
+    @pytest.mark.datafiles("unittests/test_data/ebd20230629_v34.docx")
+    @pytest.mark.parametrize(
+        "filename, ebd_key",
+        [
+            pytest.param("ebd20230629_v34.docx", "E_0561", id="Es ist das EBD E_0556 zu nutzen."),
+        ],
+    )
+    def test_finding_tables_negative(self, datafiles, filename: str, ebd_key: str):
+        with pytest.raises(TableNotFoundError):
+            docx_tables = get_ebd_docx_tables(datafiles, filename, ebd_key=ebd_key)
+            converter = DocxTableConverter(
+                docx_tables, ebd_key=ebd_key, chapter="Dummy Chapter", sub_chapter="Dummy Subchapter"
+            )
+            _ = converter.convert_docx_tables_to_ebd_table()
+
+    @pytest.mark.datafiles("unittests/test_data/ebd20230619_v34.docx")
+    @pytest.mark.parametrize(
+        "filename, ebd_key, excepted_subsequent",
+        [
+            pytest.param("ebd20230619_v34.docx", "E_0012", "2"),
+            pytest.param("ebd20230619_v34.docx", "E_0021", "Ende"),
+        ],
+    )
+    def test_wrong_encoding_of_rightarrow(self, datafiles, filename: str, ebd_key: str, excepted_subsequent: str):
+        docx_tables = get_ebd_docx_tables(datafiles, filename, ebd_key=ebd_key)
+        converter = DocxTableConverter(
+            docx_tables, ebd_key=ebd_key, chapter="Dummy Chapter", sub_chapter="Dummy Subchapter"
+        )
+        actual = converter.convert_docx_tables_to_ebd_table()
+        assert any(
+            subrow
+            for row in actual.rows
+            for subrow in row.sub_rows
+            if subrow.check_result.subsequent_step_number == excepted_subsequent
+        )
+
     @pytest.mark.datafiles("unittests/test_data/ebd20221128.docx")
     @pytest.mark.parametrize(
         "filename, ebd_key, chapter, sub_chapter, expected",

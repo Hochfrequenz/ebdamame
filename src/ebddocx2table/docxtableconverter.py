@@ -33,7 +33,7 @@ def _sort_columns_in_row(docx_table_row: _Row) -> Generator[_Cell, None, None]:
         yield _Cell(table_column, docx_table_row.table)
 
 
-_subsequent_step_pattern = re.compile(r"^(?P<bool>(?:ja)|(?:nein))\s*(?P<subsequent_step_number>(?:\d+\*?)|ende)?")
+_subsequent_step_pattern = re.compile(r"^(?P<bool>(?:ja)|(?:nein))[\sà]*(?P<subsequent_step_number>(?:\d+\*?)|ende)?")
 
 _step_number_pattern = re.compile(_STEP_NUMBER_REGEX)
 
@@ -42,7 +42,9 @@ def _get_index_of_first_column_with_step_number(cells: List[_Cell]) -> int:
     """
     returns the index of the first cell in cells, that contains a step number
     """
-    first_step_number_cell = first_true(cells, pred=lambda cell: _step_number_pattern.match(cell.text) is not None)
+    first_step_number_cell = first_true(
+        cells, pred=lambda cell: _step_number_pattern.match(cell.text.strip()) is not None
+    )
     step_number_column_index = cells.index(first_step_number_cell)
     _logger.debug("The step number is in column %i", step_number_column_index)
     return step_number_column_index
@@ -175,6 +177,7 @@ class DocxTableConverter:
                     self._column_index_result_code = column_index
                 elif table_cell_text == "Hinweis":
                     self._column_index_note = column_index
+
         self._metadata = EbdTableMetaData(ebd_code=ebd_key, sub_chapter=sub_chapter, chapter=chapter, role=role)
 
     @staticmethod

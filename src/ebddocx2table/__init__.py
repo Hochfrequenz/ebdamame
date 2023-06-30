@@ -11,7 +11,7 @@ from typing import Dict, Generator, Iterable, List, Optional, Tuple, Union
 import attrs
 from docx import Document  # type:ignore[import]
 from docx.oxml import CT_P, CT_Tbl  # type:ignore[import]
-from docx.table import Table  # type:ignore[import]
+from docx.table import Table, _Cell  # type:ignore[import]
 from docx.text.paragraph import Paragraph  # type:ignore[import]
 
 _logger = logging.getLogger(__name__)
@@ -62,6 +62,44 @@ class TableNotFoundError(Exception):
         self.ebd_key = ebd_key
 
 
+_ebd_cell_pattern = re.compile(r"^(?:ja|nein)\s*(?:Ende|\d+)$")
+"""
+any EBD table shall contain at least one cell that matches this pattern
+"""
+
+
+def _cell_is_probably_from_an_ebd_cell(cell: _Cell) -> bool:
+    if "" in cell.text:
+        return True
+    if cell.text in {"ja", "nein"}:
+        return True
+    if "à" in cell.text:
+        # the rightarrow in wrong encoding
+        return True
+    if _ebd_cell_pattern.match(cell.text):
+        return True
+    if cell.text.strip().startswith("Cluster:") or cell.text.startswith("Hinweis:"):
+        return True
+    return False
+
+
+def _table_is_an_ebd_table(table: Table) -> bool:
+    """
+    Returns true iff the table "looks like" an EB-Table.
+    This is to distinguish between tables that are inside the same subsection that describes an EBD but are not part
+    of the decision tree at all (e.g. in E_0406 the tables about Artikel-IDs).
+    """
+    for row in table.rows:
+        try:
+            for cell in row.cells:
+                if _cell_is_probably_from_an_ebd_cell(cell):
+                    return True
+        except IndexError:  # don't ask me why this happens; It's the internals of python-docx
+            continue
+    return False
+
+
+# pylint:disable=too-many-branches
 def get_ebd_docx_tables(docx_file_path: Path, ebd_key: str) -> List[Table]:
     """
     Opens the file specified in docx_file_path and returns the tables that relate to the given ebd_key.
@@ -73,7 +111,7 @@ def get_ebd_docx_tables(docx_file_path: Path, ebd_key: str) -> List[Table]:
         raise ValueError(f"The ebd_key '{ebd_key}' does not match {_ebd_key_pattern.pattern}")
     document = get_document(docx_file_path)
 
-    next_table_is_requested_table: bool = False
+    is_inside_subsection_of_requested_table: bool = False
     tables: List[Table] = []
     tables_and_paragraphs = _get_tables_and_paragaphs(document)
     for table_or_paragraph in tables_and_paragraphs:
@@ -82,8 +120,21 @@ def get_ebd_docx_tables(docx_file_path: Path, ebd_key: str) -> List[Table]:
             # Assumptions:
             # 1. before each EbdTable there is a paragraph whose text starts with the respective EBD key
             # 2. there are no duplicates
-            next_table_is_requested_table = paragraph.text.startswith(ebd_key)
-        if isinstance(table_or_paragraph, Table) and next_table_is_requested_table:
+            is_inside_subsection_of_requested_table = (
+                paragraph.text.startswith(ebd_key) or is_inside_subsection_of_requested_table
+            )
+            if (
+                is_inside_subsection_of_requested_table
+                and paragraph.text.strip().startswith("Es ist das EBD")
+                and paragraph.text.strip().endswith("zu nutzen.")
+            ):
+                # that's kind of a dirty hack. But it works.
+                break
+        if (
+            isinstance(table_or_paragraph, Table)
+            and is_inside_subsection_of_requested_table
+            and _table_is_an_ebd_table(table_or_paragraph)
+        ):
             table: Table = table_or_paragraph
             tables.append(table)
             # Now we have to check if the EBD table spans multiple pages and _maybe_ we have to collect more tables.
@@ -94,17 +145,22 @@ def get_ebd_docx_tables(docx_file_path: Path, ebd_key: str) -> List[Table]:
             for next_item in tables_and_paragraphs:  # start iterating from where the outer loop paused
                 if isinstance(next_item, Table):
                     # this is the case that the authors created multiple single tables on single adjacent pages
-                    tables.append(next_item)
-                elif isinstance(next_item, Paragraph) and not next_item.text.strip():
-                    # sometimes the authors add blank lines before they continue with the next table
+                    # if table_is_an_ebd_table(table):
+                    if _table_is_an_ebd_table(next_item):
+                        tables.append(next_item)
+                elif isinstance(next_item, Paragraph):
+                    if next_item.text.startswith("S_") or next_item.text.startswith("E_"):
+                        # this is the case that the authors created 1 table that spans multiple pages
+                        # and we're done collecting tables for this EBD key
+                        break
                     continue
                 else:
                     break  # inner loop because if no other table will follow
                     # we're done collecting the tables for this EBD key
-        if next_table_is_requested_table and len(tables) > 0:  # this means: we found the table
+        if is_inside_subsection_of_requested_table and len(tables) > 0:  # this means: we found the table
             # break the outer loop, too; no need to iterate any further
             break
-    if len(tables) == 0:
+    if not any(tables):
         raise TableNotFoundError(ebd_key=ebd_key)
     return tables
 
