@@ -101,14 +101,14 @@ def main(input_path: Path, output_path: Path, export_types: list[Literal["puml",
         except Exception as scraping_error:  # pylint:disable=broad-except
             click.secho(f"Error while scraping {ebd_key}: {str(scraping_error)}; Skip!", fg="red")
             continue
+        if "json" in export_types:
+            _dump_json(output_path / Path(f"{ebd_key}.json"), ebd_table)
+            click.secho(f"💾 Successfully exported '{ebd_key}.json'")
         try:
             ebd_graph = convert_table_to_graph(ebd_table)
         except Exception as graphing_error:  # pylint:disable=broad-except
             click.secho(f"Error while graphing {ebd_key}: {str(graphing_error)}; Skip!", fg="red")
             continue
-        if "json" in export_types:
-            _dump_json(output_path / Path(f"{ebd_key}.json"), ebd_table)
-            click.secho(f"💾 Successfully exported '{ebd_key}.json'")
         if "puml" in export_types:
             try:
                 _dump_puml(output_path / Path(f"{ebd_key}.puml"), ebd_graph)
