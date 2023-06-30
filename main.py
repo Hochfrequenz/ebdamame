@@ -72,7 +72,7 @@ def _dump_json(json_path: Path, ebd_table: EbdTable) -> None:
     multiple=True,
     help="Choose which file you'd like to create",
 )
-# pylint:disable=too-many-locals
+# pylint:disable=too-many-locals, too-many-branches
 def main(input_path: Path, output_path: Path, export_types: list[Literal["puml", "dot", "json", "svg"]]):
     """
     A program to get a machine-readable version of the AHBs docx files published by edi@energy.
@@ -120,12 +120,17 @@ def main(input_path: Path, output_path: Path, export_types: list[Literal["puml",
                 click.secho(str(assertion_error), fg="red")
             except GraphToComplexForPlantumlError as too_complex_error:
                 click.secho(str(too_complex_error), fg="red")
-        if "dot" in export_types:
-            _dump_dot(output_path / Path(f"{ebd_key}.dot"), ebd_graph)
-            click.secho(f"💾 Successfully exported '{ebd_key}.dot'")
-        if "svg" in export_types:
-            _dump_svg(output_path / Path(f"{ebd_key}.svg"), ebd_graph)
-            click.secho(f"💾 Successfully exported '{ebd_key}.svg'")
+        try:
+            if "dot" in export_types:
+                _dump_dot(output_path / Path(f"{ebd_key}.dot"), ebd_graph)
+                click.secho(f"💾 Successfully exported '{ebd_key}.dot'")
+            if "svg" in export_types:
+                _dump_svg(output_path / Path(f"{ebd_key}.svg"), ebd_graph)
+                click.secho(f"💾 Successfully exported '{ebd_key}.svg'")
+        except AssertionError as assertion_error:
+            # e.g. AssertionError: If indegree > 1, the number of paths should always be greater than 1 too.
+            click.secho(str(assertion_error), fg="red")
+            # both the SVG and dot path require graphviz to work, hence the common error handling block
 
     click.secho("🏁Finished")
 
