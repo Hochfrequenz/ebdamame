@@ -114,13 +114,28 @@ class TestEbdDocx2Table:
             pytest.param("ebd20230629_v34.docx", "E_0406", id="E_0406: EB-Table starts after pages of text"),
         ],
     )
-    def test_finding_tables(self, datafiles, filename: str, ebd_key: str):
+    def test_finding_tables_positive(self, datafiles, filename: str, ebd_key: str):
         docx_tables = get_ebd_docx_tables(datafiles, filename, ebd_key=ebd_key)
         converter = DocxTableConverter(
             docx_tables, ebd_key=ebd_key, chapter="Dummy Chapter", sub_chapter="Dummy Subchapter"
         )
         actual = converter.convert_docx_tables_to_ebd_table()  # must not throw TableNotFoundError
         assert isinstance(actual, EbdTable)
+
+    @pytest.mark.datafiles("unittests/test_data/ebd20230629_v34.docx")
+    @pytest.mark.parametrize(
+        "filename, ebd_key",
+        [
+            pytest.param("ebd20230629_v34.docx", "E_0561", id="Es ist das EBD E_0556 zu nutzen."),
+        ],
+    )
+    def test_finding_tables_negative(self, datafiles, filename: str, ebd_key: str):
+        with pytest.raises(TableNotFoundError):
+            docx_tables = get_ebd_docx_tables(datafiles, filename, ebd_key=ebd_key)
+            converter = DocxTableConverter(
+                docx_tables, ebd_key=ebd_key, chapter="Dummy Chapter", sub_chapter="Dummy Subchapter"
+            )
+            actual = converter.convert_docx_tables_to_ebd_table()
 
     @pytest.mark.datafiles("unittests/test_data/ebd20221128.docx")
     @pytest.mark.parametrize(

@@ -18,6 +18,7 @@ import click
 from ebdtable2graph import convert_graph_to_plantuml, convert_table_to_graph
 from ebdtable2graph.graphviz import convert_dot_to_svg_kroki, convert_graph_to_dot
 from ebdtable2graph.models import EbdGraph, EbdTable
+from ebdtable2graph.plantuml import GraphToComplexForPlantumlError
 
 # pylint:disable=import-error
 from ebddocx2table import TableNotFoundError, get_all_ebd_keys, get_ebd_docx_tables  # type:ignore[import]
@@ -107,7 +108,7 @@ def main(input_path: Path, output_path: Path, export_types: list[Literal["puml",
         try:
             ebd_graph = convert_table_to_graph(ebd_table)
         except Exception as graphing_error:  # pylint:disable=broad-except
-            click.secho(f"Error while graphing {ebd_key}: {str(graphing_error)}; Skip!", fg="red")
+            click.secho(f"Error while graphing {ebd_key}: {str(graphing_error)}; Skip!", fg="yellow")
             continue
         if "puml" in export_types:
             try:
@@ -116,6 +117,8 @@ def main(input_path: Path, output_path: Path, export_types: list[Literal["puml",
             except AssertionError as assertion_error:
                 # https://github.com/Hochfrequenz/ebdtable2graph/issues/35
                 click.secho(str(assertion_error), fg="red")
+            except GraphToComplexForPlantumlError as too_complex_error:
+                click.secho(str(too_complex_error), fg="red")
         if "dot" in export_types:
             _dump_dot(output_path / Path(f"{ebd_key}.dot"), ebd_graph)
             click.secho(f"💾 Successfully exported '{ebd_key}.dot'")

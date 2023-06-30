@@ -11,7 +11,7 @@ from typing import Dict, Generator, Iterable, List, Optional, Tuple, Union
 import attrs
 from docx import Document  # type:ignore[import]
 from docx.oxml import CT_P, CT_Tbl  # type:ignore[import]
-from docx.table import Table  # type:ignore[import]
+from docx.table import Table, _Cell  # type:ignore[import]
 from docx.text.paragraph import Paragraph  # type:ignore[import]
 
 _logger = logging.getLogger(__name__)
@@ -68,6 +68,21 @@ any EBD table shall contain at least one cell that matches this pattern
 """
 
 
+def _cell_is_probably_from_an_ebd_cell(cell: _Cell) -> bool:
+    if "" in cell.text:
+        return True
+    if cell.text in {"ja", "nein"}:
+        return True
+    if "à" in cell.text:
+        # the rightarrow in wrong encoding
+        return True
+    if _ebd_cell_pattern.match(cell.text):
+        return True
+    if cell.text.strip().startswith("Cluster:") or cell.text.startswith("Hinweis:"):
+        return True
+    return False
+
+
 def _table_is_an_ebd_table(table: Table) -> bool:
     """
     Returns true iff the table "looks like" an EB-Table.
@@ -77,7 +92,7 @@ def _table_is_an_ebd_table(table: Table) -> bool:
     for row in table.rows:
         try:
             for cell in row.cells:
-                if cell.text in {"ja", "nein"} or "" in cell.text or _ebd_cell_pattern.match(cell.text):
+                if _cell_is_probably_from_an_ebd_cell(cell):
                     return True
         except IndexError:  # don't ask me why this happens; It's the internals of python-docx
             continue
@@ -104,8 +119,10 @@ def get_ebd_docx_tables(docx_file_path: Path, ebd_key: str) -> List[Table]:
             # Assumptions:
             # 1. before each EbdTable there is a paragraph whose text starts with the respective EBD key
             # 2. there are no duplicates
-            is_inside_subsection_of_requested_table = (
-                paragraph.text.startswith(ebd_key) or is_inside_subsection_of_requested_table
+            is_inside_subsection_of_requested_table = paragraph.text.startswith(ebd_key) or (
+                is_inside_subsection_of_requested_table
+                and not paragraph.text.strip().startswith("Es it das EBD")
+                and paragraph.text.strip().endswith("zu nutzen.")
             )
         if (
             isinstance(table_or_paragraph, Table)
