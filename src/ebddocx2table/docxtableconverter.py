@@ -42,7 +42,9 @@ def _get_index_of_first_column_with_step_number(cells: List[_Cell]) -> int:
     """
     returns the index of the first cell in cells, that contains a step number
     """
-    first_step_number_cell = first_true(cells, pred=lambda cell: _step_number_pattern.match(cell.text) is not None)
+    first_step_number_cell = first_true(
+        cells, pred=lambda cell: _step_number_pattern.match(cell.text.strip()) is not None
+    )
     step_number_column_index = cells.index(first_step_number_cell)
     _logger.debug("The step number is in column %i", step_number_column_index)
     return step_number_column_index
