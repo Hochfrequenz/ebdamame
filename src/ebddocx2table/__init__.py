@@ -121,8 +121,9 @@ def get_ebd_docx_tables(docx_file_path: Path, ebd_key: str) -> List[Table]:
             # 2. there are no duplicates
             is_inside_subsection_of_requested_table = paragraph.text.startswith(ebd_key) or (
                 is_inside_subsection_of_requested_table
-                and not paragraph.text.strip().startswith("Es it das EBD")
-                and paragraph.text.strip().endswith("zu nutzen.")
+                and not (
+                    paragraph.text.strip().startswith("Es it das EBD") and paragraph.text.strip().endswith("zu nutzen.")
+                )
             )
         if (
             isinstance(table_or_paragraph, Table)
