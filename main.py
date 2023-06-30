@@ -6,7 +6,7 @@ a small click based script to extract all EBDs from a given file.
 #  -o ../machine-readable_entscheidungsbaumdiagramme/FV2304
 #  -t json -t dot -t svg -t puml
 # or
-# main.py -i unittests/test_data/ebd20230619_v34.docx
+# main.py -i unittests/test_data/ebd20230629_v34.docx
 #  -o ../machine-readable_entscheidungsbaumdiagramme/FV2310
 #  -t json -t dot -t svg -t puml
 import json
@@ -101,6 +101,9 @@ def main(input_path: Path, output_path: Path, export_types: list[Literal["puml",
         except Exception as scraping_error:  # pylint:disable=broad-except
             click.secho(f"Error while scraping {ebd_key}: {str(scraping_error)}; Skip!", fg="red")
             continue
+        if "json" in export_types:
+            _dump_json(output_path / Path(f"{ebd_key}.json"), ebd_table)
+            click.secho(f"💾 Successfully exported '{ebd_key}.json'")
         try:
             ebd_graph = convert_table_to_graph(ebd_table)
         except Exception as graphing_error:  # pylint:disable=broad-except
@@ -119,9 +122,6 @@ def main(input_path: Path, output_path: Path, export_types: list[Literal["puml",
         if "svg" in export_types:
             _dump_svg(output_path / Path(f"{ebd_key}.svg"), ebd_graph)
             click.secho(f"💾 Successfully exported '{ebd_key}.svg'")
-        if "json" in export_types:
-            _dump_json(output_path / Path(f"{ebd_key}.json"), ebd_table)
-            click.secho(f"💾 Successfully exported '{ebd_key}.json'")
 
     click.secho("🏁Finished")
 
