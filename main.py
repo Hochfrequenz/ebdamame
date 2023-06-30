@@ -6,7 +6,7 @@ a small click based script to extract all EBDs from a given file.
 #  -o ../machine-readable_entscheidungsbaumdiagramme/FV2304
 #  -t json -t dot -t svg -t puml
 # or
-# main.py -i unittests/test_data/ebd20230619_v34.docx
+# main.py -i unittests/test_data/ebd20230629_v34.docx
 #  -o ../machine-readable_entscheidungsbaumdiagramme/FV2310
 #  -t json -t dot -t svg -t puml
 import json
