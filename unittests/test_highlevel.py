@@ -137,12 +137,12 @@ class TestEbdDocx2Table:
             )
             _ = converter.convert_docx_tables_to_ebd_table()
 
-    @pytest.mark.datafiles("unittests/test_data/ebd20230629_v34.docx")
+    @pytest.mark.datafiles("unittests/test_data/ebd20230619_v34.docx")
     @pytest.mark.parametrize(
         "filename, ebd_key, excepted_subsequent",
         [
-            pytest.param("ebd20230629_v34.docx", "E_0012", "2"),
-            pytest.param("ebd20230629_v34.docx", "E_0021", "Ende"),
+            pytest.param("ebd20230619_v34.docx", "E_0012", "2"),
+            pytest.param("ebd20230619_v34.docx", "E_0021", "Ende"),
         ],
     )
     def test_wrong_encoding_of_rightarrow(self, datafiles, filename: str, ebd_key: str, excepted_subsequent: str):

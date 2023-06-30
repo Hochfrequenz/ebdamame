@@ -99,6 +99,7 @@ def _table_is_an_ebd_table(table: Table) -> bool:
     return False
 
 
+# pylint:disable=too-many-branches
 def get_ebd_docx_tables(docx_file_path: Path, ebd_key: str) -> List[Table]:
     """
     Opens the file specified in docx_file_path and returns the tables that relate to the given ebd_key.
@@ -119,12 +120,16 @@ def get_ebd_docx_tables(docx_file_path: Path, ebd_key: str) -> List[Table]:
             # Assumptions:
             # 1. before each EbdTable there is a paragraph whose text starts with the respective EBD key
             # 2. there are no duplicates
-            is_inside_subsection_of_requested_table = paragraph.text.startswith(ebd_key) or (
-                is_inside_subsection_of_requested_table
-                and not (
-                    paragraph.text.strip().startswith("Es it das EBD") and paragraph.text.strip().endswith("zu nutzen.")
-                )
+            is_inside_subsection_of_requested_table = (
+                paragraph.text.startswith(ebd_key) or is_inside_subsection_of_requested_table
             )
+            if (
+                is_inside_subsection_of_requested_table
+                and paragraph.text.strip().startswith("Es ist das EBD")
+                and paragraph.text.strip().endswith("zu nutzen.")
+            ):
+                # that's kind of a dirty hack. But it works.
+                break
         if (
             isinstance(table_or_paragraph, Table)
             and is_inside_subsection_of_requested_table
