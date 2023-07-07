@@ -19,6 +19,39 @@ The package `ebddocx2table` scrapes the `.docx` files and returns data in a mode
 
 Once you scraped the data (using this package) you can plot it with [`ebdtable2graph`](https://pypi.org/project/ebdtable2graph).
 
+##  How to use the package
+In any case, install the repo from PyPI:
+
+### Use as a library
+```python
+import json
+from pathlib import Path
+
+import cattrs
+
+from ebddocx2table import TableNotFoundError, get_all_ebd_keys, get_ebd_docx_tables  # type:ignore[import]
+from ebddocx2table.docxtableconverter import DocxTableConverter  # type:ignore[import]
+
+docx_file_path = Path("unittests/test_data/ebd20230629_v34.docx")
+# download this .docx File from edi-energy.de or find it in the unittests of this repository.
+# https://github.com/Hochfrequenz/ebddocx2table/blob/main/unittests/test_data/ebd20230629_v34.docx
+docx_tables = get_ebd_docx_tables(docx_file_path, ebd_key="E_0003")
+converter = DocxTableConverter(
+    docx_tables,
+    ebd_key="E_0003",
+    chapter="MaBiS",
+    sub_chapter="7.42.1: AD: Bestellung der Aggregationsebene der Bilanzkreissummenzeitreihe auf Ebene der Regelzone",
+)
+result = converter.convert_docx_tables_to_ebd_table()
+with open(Path("E_0003.json"), "w+", encoding="utf-8") as result_file:
+    # the result file can be found here:
+    # https://github.com/Hochfrequenz/machine-readable_entscheidungsbaumdiagramme/tree/main/FV2310
+    json.dump(cattrs.unstructure(result), result_file, ensure_ascii=False, indent=2, sort_keys=True)
+```
+
+### Use as a CLI tool
+_to be written_
+
 ## How to use this Repository on Your Machine (for development)
 
 Please follow the instructions in our

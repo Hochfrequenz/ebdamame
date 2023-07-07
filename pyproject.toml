@@ -1,3 +1,34 @@
+[project]
+name = "ebddocx2table"
+description = "A scraper to library to scrape .docx files with 'Entscheidungsbaumdiagramm' tables into a truely machine readable structure"
+license = { text = "GPL" }
+requires-python = ">=3.11"
+authors = [{ name = "Hochfrequenz Unternehmensberatung GmbH", email = "info@hochfrequenz.de" }]
+keywords = ["EBD", "Energiewirtschaft", "Marktkommunikation"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.11",
+]
+dependencies = [
+    "ebdtable2graph>=0.1.9",
+    "python-docx",
+    "more_itertools",
+    "attrs",
+    "click"
+    # add all the dependencies from requirements.in here, too
+]
+dynamic = ["readme", "version"]
+
+[project.urls]
+Changelog = "https://github.com/Hochfrequenz/ebddocx2table/releases"
+Homepage = "https://github.com/Hochfrequenz/ebddocx2table"
+
 [tool.black]
 line-length = 120
 
@@ -8,10 +39,26 @@ profile = "black"
 [tool.pylint."MESSAGES CONTROL"]
 max-line-length = 120
 
-# the following lines are needed if you would like to build a python package
-# and you want to use semantic versioning
-# [build-system]
-# requires = ["setuptools>=41.0", "wheel", "setuptools_scm[toml]>=3.4"]
-# build-backend = "setuptools.build_meta"
+[build-system]
+requires = ["hatchling>=1.8.0", "hatch-vcs", "hatch-fancy-pypi-readme"]
+build-backend = "hatchling.build"
 
-# [tool.setuptools_scm]
+[tool.hatch.metadata.hooks.fancy-pypi-readme]
+content-type = "text/markdown"
+fragments = [{ path = "README.md" }]
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "src/_ebddocx2table_version.py"
+template = '''
+version = "{version}"
+'''
+
+[tool.hatch.build.targets.sdist]
+exclude = ["/unittests"]
+
+[tool.hatch.build.targets.wheel]
+only-include = ["src"]
+sources = ["src"]
