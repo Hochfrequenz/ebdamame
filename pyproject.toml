@@ -25,6 +25,9 @@ dependencies = [
 ]
 dynamic = ["readme", "version"]
 
+[project.scripts]
+ebd2docx2table = "ebddocx2table.main:main"
+
 [project.urls]
 Changelog = "https://github.com/Hochfrequenz/ebddocx2table/releases"
 Homepage = "https://github.com/Hochfrequenz/ebddocx2table"
