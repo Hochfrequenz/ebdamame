@@ -6,7 +6,10 @@
 ![Black status badge](https://github.com/Hochfrequenz/ebd_docx_to_table/workflows/Black/badge.svg)
 ![PyPi Status Badge](https://img.shields.io/pypi/v/ebddocx2table)
 
-🇩🇪 Dieses Repository enthält ein Python-Paket namens [`ebddocx2table`](https://pypi.org/project/ebddocx2table), das genutzt werden kann, um aus .docx-Dateien maschinenlesbare Tabellen, die einen Entscheidungsbaum (EBD) modellieren, zu extrahieren (scrapen). Diese Entscheidungsbäume sind Teil eines regulatorischen Regelwerks für die deutsche Energiewirtschaft und kommen in der Eingangsprüfung der Marktkommunikation zum Einsatz. Die mit diesem Paket erstellten maschinenlesbaren Tabellen können mit [`ebdtable2graph`](https://pypi.org/project/ebdtable2graph) in echte Graphen und Diagramme umgewandelt werden.
+🇩🇪 Dieses Repository enthält ein Python-Paket namens [`ebddocx2table`](https://pypi.org/project/ebddocx2table), das genutzt werden kann, um aus .docx-Dateien maschinenlesbare Tabellen, die einen Entscheidungsbaum (EBD) modellieren, zu extrahieren (scrapen).
+Diese Entscheidungsbäume sind Teil eines regulatorischen Regelwerks für die deutsche Energiewirtschaft und kommen in der Eingangsprüfung der Marktkommunikation zum Einsatz.
+Die mit diesem Paket erstellten maschinenlesbaren Tabellen können mit [`ebdtable2graph`](https://pypi.org/project/ebdtable2graph) in echte Graphen und Diagramme umgewandelt werden.
+Exemplarische Ergebnisse des Scrapings finden sich als .json-Dateien im Repository [`machine-readable_entscheidungsbaumdiagramme`](https://github.com/Hochfrequenz/machine-readable_entscheidungsbaumdiagramme/).
 
 🇬🇧 This repository contains the source code of the Python package [`ebddocx2table`](https://pypi.org/project/ebddocx2table).
 
@@ -19,10 +22,16 @@ The package `ebddocx2table` scrapes the `.docx` files and returns data in a mode
 
 Once you scraped the data (using this package) you can plot it with [`ebdtable2graph`](https://pypi.org/project/ebdtable2graph).
 
-##  How to use the package
+## How to use the package
+
 In any case, install the repo from PyPI:
 
+```bash
+pip install ebddocx2table
+```
+
 ### Use as a library
+
 ```python
 import json
 from pathlib import Path
@@ -50,6 +59,7 @@ with open(Path("E_0003.json"), "w+", encoding="utf-8") as result_file:
 ```
 
 ### Use as a CLI tool
+
 _to be written_
 
 ## How to use this Repository on Your Machine (for development)

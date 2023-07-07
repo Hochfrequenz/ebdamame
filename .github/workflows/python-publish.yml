@@ -7,7 +7,7 @@ name: Upload Python Package
 on:
   release:
     branches: main
-    types: [ created, edited ]
+    types: [created, edited]
 
 jobs:
   tests:
@@ -15,8 +15,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        python-version: [ "3.11" ]
-        os: [ ubuntu-latest ]
+        python-version: ["3.11"]
+        os: [ubuntu-latest]
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
