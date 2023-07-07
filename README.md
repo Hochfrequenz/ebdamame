@@ -6,7 +6,9 @@
 ![Black status badge](https://github.com/Hochfrequenz/ebd_docx_to_table/workflows/Black/badge.svg)
 ![PyPi Status Badge](https://img.shields.io/pypi/v/ebddocx2table)
 
-This repository contains the source code of the Python package [`ebddocx2table`](https://pypi.org/project/ebddocx2table).
+🇩🇪 Dieses Repository enthält ein Python-Paket namens [`ebddocx2table`](https://pypi.org/project/ebddocx2table), das genutzt werden kann, um aus .docx-Dateien maschinenlesbare Tabellen, die einen Entscheidungsbaum (EBD) modellieren, zu extrahieren (scrapen). Diese Entscheidungsbäume sind Teil eines regulatorischen Regelwerks für die deutsche Energiewirtschaft und kommen in der Eingangsprüfung der Marktkommunikation zum Einsatz. Die mit diesem Paket erstellten maschinenlesbaren Tabellen können mit [`ebdtable2graph`](https://pypi.org/project/ebdtable2graph) in echte Graphen und Diagramme umgewandelt werden.
+
+🇬🇧 This repository contains the source code of the Python package [`ebddocx2table`](https://pypi.org/project/ebddocx2table).
 
 ## Rationale
 
