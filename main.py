@@ -78,7 +78,7 @@ def _dump_json(json_path: Path, ebd_table: EbdTable) -> None:
     multiple=True,
     help="Choose which file you'd like to create",
 )
-# pylint:disable=too-many-locals, too-many-branches
+# pylint:disable=too-many-locals, too-many-branches, too-many-statements,
 def main(input_path: Path, output_path: Path, export_types: list[Literal["puml", "dot", "json", "svg"]]):
     """
     A program to get a machine-readable version of the AHBs docx files published by edi@energy.
@@ -137,7 +137,7 @@ def main(input_path: Path, output_path: Path, export_types: list[Literal["puml",
                 click.secho(str(assertion_error), fg="red")
             except (NotExactlyTwoOutgoingEdgesError, GraphTooComplexForPlantumlError) as known_issue:
                 handle_known_error(known_issue, ebd_key)
-            except Exception as general_error:
+            except Exception as general_error:  # pylint:disable=broad-exception-caught
                 click.secho(f"Error while exporting {ebd_key} as UML: {str(general_error)}; Skip!", fg="yellow")
 
         try:
