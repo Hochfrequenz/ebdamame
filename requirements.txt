@@ -26,7 +26,7 @@ lxml==4.9.2
     #   ebdtable2graph
     #   python-docx
     #   svgutils
-more-itertools==10.0.0
+more-itertools==10.1.0
     # via -r requirements.in
 networkx==2.8.8
     # via ebdtable2graph
