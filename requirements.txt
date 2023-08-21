@@ -15,7 +15,7 @@ certifi==2023.7.22
     # via requests
 charset-normalizer==2.1.1
     # via requests
-click==8.1.6
+click==8.1.7
     # via -r requirements.in
 ebdtable2graph==0.1.17
     # via -r requirements.in
