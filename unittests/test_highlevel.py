@@ -24,12 +24,16 @@ class TestEbdDocx2Table:
     """
 
     @pytest.mark.datafiles("unittests/test_data/ebd20221128.docx")
-    @pytest.mark.parametrize("filename", ["ebd20221128.docx"])
+    @pytest.mark.datafiles("unittests/test_data/ebd20230619_v33.docx")
+    @pytest.mark.datafiles("unittests/test_data/ebd20230629_v34.docx")
+    @pytest.mark.parametrize("filename", ["ebd20221128.docx", "ebd20230619_v33.docx", "ebd20230629_v34.docx"])
     def test_can_read_document(self, datafiles, filename: str):
         actual = get_document(datafiles, filename)
         assert actual is not None
 
     @pytest.mark.datafiles("unittests/test_data/ebd20221128.docx")
+    @pytest.mark.datafiles("unittests/test_data/ebd20230619_v33.docx")
+    @pytest.mark.datafiles("unittests/test_data/ebd20230629_v34.docx")
     @pytest.mark.parametrize(
         "filename,expected_length,expected_entries",
         [
@@ -72,7 +76,9 @@ class TestEbdDocx2Table:
                         ),
                     ),
                 ],
-            )
+            ),
+            pytest.param("ebd20230619_v33.docx", 249, []),  # number is not double-checked yet
+            pytest.param("ebd20230629_v34.docx", 293, []),  # number is not double-checked yet
         ],
     )
     def test_get_ebd_keys(
@@ -100,6 +106,57 @@ class TestEbdDocx2Table:
         assert len(actual) == expected_number_of_tables
         for table in actual:
             assert isinstance(table, Table)
+
+    @pytest.mark.datafiles("unittests/test_data/ebd20230629_v34.docx")
+    @pytest.mark.parametrize(
+        "filename, ebd_key",
+        [
+            pytest.param("ebd20230629_v34.docx", "E_0406", id="E_0406: EB-Table starts after pages of text"),
+        ],
+    )
+    def test_finding_tables_positive(self, datafiles, filename: str, ebd_key: str):
+        docx_tables = get_ebd_docx_tables(datafiles, filename, ebd_key=ebd_key)
+        converter = DocxTableConverter(
+            docx_tables, ebd_key=ebd_key, chapter="Dummy Chapter", sub_chapter="Dummy Subchapter"
+        )
+        actual = converter.convert_docx_tables_to_ebd_table()  # must not throw TableNotFoundError
+        assert isinstance(actual, EbdTable)
+
+    @pytest.mark.datafiles("unittests/test_data/ebd20230629_v34.docx")
+    @pytest.mark.parametrize(
+        "filename, ebd_key",
+        [
+            pytest.param("ebd20230629_v34.docx", "E_0561", id="Es ist das EBD E_0556 zu nutzen."),
+        ],
+    )
+    def test_finding_tables_negative(self, datafiles, filename: str, ebd_key: str):
+        with pytest.raises(TableNotFoundError):
+            docx_tables = get_ebd_docx_tables(datafiles, filename, ebd_key=ebd_key)
+            converter = DocxTableConverter(
+                docx_tables, ebd_key=ebd_key, chapter="Dummy Chapter", sub_chapter="Dummy Subchapter"
+            )
+            _ = converter.convert_docx_tables_to_ebd_table()
+
+    @pytest.mark.datafiles("unittests/test_data/ebd20230619_v34.docx")
+    @pytest.mark.parametrize(
+        "filename, ebd_key, excepted_subsequent",
+        [
+            pytest.param("ebd20230619_v34.docx", "E_0012", "2"),
+            pytest.param("ebd20230619_v34.docx", "E_0021", "Ende"),
+        ],
+    )
+    def test_wrong_encoding_of_rightarrow(self, datafiles, filename: str, ebd_key: str, excepted_subsequent: str):
+        docx_tables = get_ebd_docx_tables(datafiles, filename, ebd_key=ebd_key)
+        converter = DocxTableConverter(
+            docx_tables, ebd_key=ebd_key, chapter="Dummy Chapter", sub_chapter="Dummy Subchapter"
+        )
+        actual = converter.convert_docx_tables_to_ebd_table()
+        assert any(
+            subrow
+            for row in actual.rows
+            for subrow in row.sub_rows
+            if subrow.check_result.subsequent_step_number == excepted_subsequent
+        )
 
     @pytest.mark.datafiles("unittests/test_data/ebd20221128.docx")
     @pytest.mark.parametrize(
@@ -156,11 +213,21 @@ class TestEbdDocx2Table:
         assert actual == expected
 
     @pytest.mark.datafiles("unittests/test_data/ebd20221128.docx")
+    @pytest.mark.datafiles("unittests/test_data/ebd20230619_v33.docx")
+    @pytest.mark.datafiles("unittests/test_data/ebd20230629_v34.docx")
     @pytest.mark.parametrize(
         "get_ebd_keys_and_files",
         [
             pytest.param(
                 "ebd20221128.docx",  # this is used as positional argument for the indirect fixture
+            ),
+            pytest.param(
+                "ebd20230619_v33.docx",  # this is used as positional argument for the indirect fixture
+                id="19.06.2023 v3.3 / FV2304",
+            ),
+            pytest.param(
+                "ebd20230629_v34.docx",
+                id="19.06.2023 v3.4 / FV2310",
             ),
         ],
         indirect=["get_ebd_keys_and_files"],  # see `def get_ebd_keys_and_files(datafiles, request)`
@@ -194,6 +261,9 @@ class TestEbdDocx2Table:
                     actual = converter.convert_docx_tables_to_ebd_table()
                     assert isinstance(actual, EbdTable)
                 # In the long run, all these catchers shall be removed.
+                except AttributeError as attribute_error:
+                    if attribute_error.name == "_column_index_step_number":
+                        pytest.skip("https://github.com/Hochfrequenz/ebddocx2table/issues/71")
                 except TableNotFoundError:
                     # https://github.com/Hochfrequenz/ebd_docx_to_table/issues/9
                     pass  # ignore for now
@@ -211,6 +281,9 @@ class TestEbdDocx2Table:
                         case "The cell content '--' does not belong to a ja/nein cell":
                             # https://github.com/Hochfrequenz/ebd_docx_to_table/issues/23
                             issue_number = "23"
+                        case "The cell content 'gültiges daten-ergebnis' does not belong to a ja/nein cell":
+                            # https://github.com/Hochfrequenz/ebd_docx_to_table/issues/74
+                            issue_number = "74"
                         case _:
                             raise
                 except UnboundLocalError as unbound_error:

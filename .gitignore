@@ -132,3 +132,5 @@ dmypy.json
 
 # vscode settings
 .vscode/
+
+src/_ebddocx2table_version.py
