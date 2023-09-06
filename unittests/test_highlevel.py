@@ -197,10 +197,10 @@ class TestEbdDocx2Table:
             pytest.param(
                 "ebd20221128.docx",
                 "E_0097",
-                "6.4 AD: Lieferbeginn",
-                "6.4.1 E_0462_Prüfen, ob Anmeldung direkt ablehnbar",
+                "7.56 AD: Austausch der Lieferantenausfallarbeitsclearingliste (Einzelanforderung)",
+                "7.56.1 E_0097_Marktlokationen mit LF-AACL abgleichen",
                 table_e0097,
-                id="E_0096 contains step numbers with *",
+                id="E_0097 contains step numbers with *",
             ),
         ],
     )

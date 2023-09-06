@@ -60,8 +60,8 @@ table_e0003 = EbdTable(
 table_e0097 = EbdTable(
     metadata=EbdTableMetaData(
         ebd_code="E_0097",
-        chapter="6.4 AD: Lieferbeginn",
-        sub_chapter="6.4.1 E_0462_Prüfen, ob Anmeldung direkt ablehnbar",
+        chapter="7.56 AD: Austausch der Lieferantenausfallarbeitsclearingliste (Einzelanforderung)",
+        sub_chapter="7.56.1 E_0097_Marktlokationen mit LF-AACL abgleichen",
         role="LF",
     ),
     rows=[
@@ -172,7 +172,7 @@ table_e0097 = EbdTable(
         ),
         EbdTableRow(
             step_number="8",  # artificially incremented step number (was '7*')
-            description="Entspricht der Bilanzkreis dem zwischen NB und LF ausge-tauschten Bilanzkreis?",
+            description="Entspricht der Bilanzkreis dem zwischen NB und LF ausgetauschten Bilanzkreis?",  # todo: check diff for "ausge-tauschten" in original .docx
             sub_rows=[
                 EbdTableSubRow(
                     check_result=EbdCheckResult(result=False, subsequent_step_number=None),
@@ -180,7 +180,7 @@ table_e0097 = EbdTable(
                     note="Cluster: Korrekturliste wegen Ablehnung\nBilanzierungsrel. Daten nicht korrekt / fehlen",
                 ),
                 EbdTableSubRow(
-                    check_result=EbdCheckResult(result=True, subsequent_step_number="8"), result_code=None, note=None
+                    check_result=EbdCheckResult(result=True, subsequent_step_number="9"), result_code=None, note=None
                 ),
             ],
             use_cases=None,
