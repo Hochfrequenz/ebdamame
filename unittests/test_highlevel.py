@@ -286,7 +286,7 @@ class TestEbdDocx2Table:
                             issue_number = "74"
                         case _:
                             raise
-                    error_msg = f"Error while scraping '{ebd_key}' (#{issue_number}): {unbound_error}"
+                    error_msg = f"Error while scraping '{ebd_key}' (#{issue_number}): {value_error}"
                     pytest.skip(error_msg)
                 except UnboundLocalError as unbound_error:
                     match unbound_error.args[0]:
