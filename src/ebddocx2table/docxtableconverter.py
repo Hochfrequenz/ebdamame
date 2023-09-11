@@ -219,14 +219,14 @@ class DocxTableConverter:
         table: Table,
         multi_step_instructions: List[MultiStepInstruction],
         row_offset: int,
-        rows: List[EbdTableRow],
-        sub_rows: List[EbdTableSubRow],
+        rows: list[EbdTableRow],
+        sub_rows: list[EbdTableSubRow],
     ) -> None:
         """
         Handles a single table (out of possible multiple tables for 1 EBD).
         The results are written into rows, sub_rows and multi_step_instructions. Those will be modified.
         """
-        use_cases: List[str] = []
+        use_cases: list[str] = []
         for row_index, enhanced_table_row in enumerate(self._enhance_list_view(table=table, row_offset=row_offset)):
             if enhanced_table_row.sub_row_position == _EbdSubRowPosition.UPPER:
                 use_cases = _get_use_cases(enhanced_table_row.cells)
@@ -271,9 +271,9 @@ class DocxTableConverter:
     def _handle_single_table_star_exception(
         self,
         table: Table,
-        multi_step_instructions: List[MultiStepInstruction],
+        multi_step_instructions: list[MultiStepInstruction],
         row_offset: int,
-        rows: List[EbdTableRow],
+        rows: list[EbdTableRow],
         row_index: int,
     ) -> None:
         """
@@ -281,7 +281,7 @@ class DocxTableConverter:
         with several instructions. Those instructions will be split in individual steps.
         As above, the results are written into rows, sub_rows and multi_step_instructions. Those will be modified.
         """
-        use_cases: List[str] = []
+        use_cases: list[str] = []
         # first init
         enhanced_table_row = self._enhance_list_view(table=table, row_offset=row_offset)[row_index]
         use_cases = _get_use_cases(enhanced_table_row.cells)
