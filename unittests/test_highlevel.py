@@ -286,6 +286,8 @@ class TestEbdDocx2Table:
                             issue_number = "74"
                         case _:
                             raise
+                    error_msg = f"Error while scraping '{ebd_key}' (#{issue_number}): {unbound_error}"
+                    pytest.skip(error_msg)
                 except UnboundLocalError as unbound_error:
                     match unbound_error.args[0]:
                         case "cannot access local variable 'role' where it is not associated with a value":
@@ -293,5 +295,5 @@ class TestEbdDocx2Table:
                             issue_number = "22"
                         case _:
                             raise
-                    error_msg = f"Error while scraping '{ebd_key}' (#{issue_number}): {value_error}"
+                    error_msg = f"Error while scraping '{ebd_key}' (#{issue_number}): {unbound_error}"
                     pytest.skip(error_msg)
