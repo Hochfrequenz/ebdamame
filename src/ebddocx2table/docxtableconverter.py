@@ -237,17 +237,8 @@ class DocxTableConverter:
                 enhanced_table_row.cells[len(use_cases) + self._column_index_check_result]
             )
             if step_number.endswith("*"):
-                self._handle_single_table_star_exception(
-                    table, multi_step_instructions, row_offset, rows, sub_rows, row_index
-                )
+                self._handle_single_table_star_exception(table, multi_step_instructions, row_offset, rows, row_index)
                 break
-                # it's a collection of many questions bundled in one artificial step number that ends with "*"
-                # raise NotImplementedError("Todo Jonas oder nicola oder daniel")
-                # large_step_rows = list(filter(lambda r: r.cells[0].text==step_number, table.rows))
-                # if any(filter(lambda ir: ir[0] > list(table.rows).index(table_row) and
-                # ir[1].cells[len(use_cases) + self._column_index_step_number]!=step_number, enumerate(table.rows))):
-                #    raise NotImplementedError(f"There are steps _after_ {step_number}. This is not implemented yet")
-                # pass
             sub_row = EbdTableSubRow(
                 check_result=EbdCheckResult(subsequent_step_number=subsequent_step_number, result=boolean_outcome),
                 result_code=enhanced_table_row.cells[len(use_cases) + self._column_index_result_code].text.strip()
@@ -275,7 +266,7 @@ class DocxTableConverter:
                     )
                 )
 
-    # see above
+    # see above boolean_outcome and subsequent_step_number could be ignored iff schemes of *-numbers are always the same
     # pylint:disable=too-many-locals
     def _handle_single_table_star_exception(
         self,
@@ -283,12 +274,12 @@ class DocxTableConverter:
         multi_step_instructions: List[MultiStepInstruction],
         row_offset: int,
         rows: List[EbdTableRow],
-        sub_rows: List[EbdTableSubRow],
         row_index: int,
     ) -> None:
         """
-        Handles a single table (out of possible multiple tables for 1 EBD).
-        The results are written into rows, sub_rows and multi_step_instructions. Those will be modified.
+        Completes table when handling of single table (out of possible multiple tables for 1 EBD) hit a step
+        with several instructions. Those instructions will be split in individual steps.
+        As above, the results are written into rows, sub_rows and multi_step_instructions. Those will be modified.
         """
         use_cases: List[str] = []
         # first init
@@ -300,43 +291,39 @@ class DocxTableConverter:
         star_case_note = enhanced_table_row.cells[len(use_cases) + self._column_index_note].text.strip() or None
         while row_index < len(self._enhance_list_view(table=table, row_offset=row_offset)):
             enhanced_table_row = self._enhance_list_view(table=table, row_offset=row_offset)[row_index]
-            sub_rows = []  # clear list every second entry
             step_number = str(int(rows[-1].step_number) + 1)
             description = enhanced_table_row.cells[len(use_cases) + self._column_index_description].text.strip()
             boolean_outcome, subsequent_step_number = _read_subsequent_step_cell(
                 enhanced_table_row.cells[len(use_cases) + self._column_index_check_result]
             )
-            sub_row = EbdTableSubRow(
-                check_result=EbdCheckResult(subsequent_step_number=subsequent_step_number, result=boolean_outcome),
-                result_code=star_case_result_code,
-                note=star_case_note,
-            )
-            _logger.debug(
-                "Successfully read sub row %s/%s", sub_row.result_code or subsequent_step_number, boolean_outcome
-            )
-            sub_rows.append(sub_row)
 
             if row_index == len(self._enhance_list_view(table=table, row_offset=row_offset)) - 1:
                 next_step = "Ende"
             else:
                 next_step = str(int(step_number) + 1)
 
-            # point to next step
-            sub_row = EbdTableSubRow(
-                check_result=EbdCheckResult(subsequent_step_number=next_step, result=True),
-                result_code=None,
-                note=None,
-            )
-            sub_rows.append(sub_row)
-
             row = EbdTableRow(
                 description=description,
                 step_number=step_number,
-                sub_rows=sub_rows,
+                sub_rows=[
+                    EbdTableSubRow(
+                        check_result=EbdCheckResult(
+                            subsequent_step_number=subsequent_step_number, result=boolean_outcome
+                        ),
+                        result_code=star_case_result_code,
+                        note=star_case_note,
+                    ),
+                    # point to next step
+                    EbdTableSubRow(
+                        check_result=EbdCheckResult(subsequent_step_number=next_step, result=True),
+                        result_code=None,
+                        note=None,
+                    ),
+                ],
                 use_cases=use_cases or None,
             )
             rows.append(row)
-            _logger.debug("Successfully read row #%s ('%s')", step_number, description)
+            _logger.debug("Successfully added artificial row #%s ('%s')", step_number, description)
 
             if enhanced_table_row.multi_step_instruction_text:
                 multi_step_instructions.append(
