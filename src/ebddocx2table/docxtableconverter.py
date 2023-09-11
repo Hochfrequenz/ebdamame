@@ -11,7 +11,7 @@ import attrs
 from docx.table import Table, _Cell, _Row  # type:ignore[import]
 from ebdtable2graph.models import EbdTable, EbdTableRow, EbdTableSubRow
 from ebdtable2graph.models.ebd_table import _STEP_NUMBER_REGEX, EbdCheckResult, EbdTableMetaData, MultiStepInstruction
-from more_itertools import first, first_true
+from more_itertools import first, first_true, last
 
 _logger = logging.getLogger(__name__)
 
@@ -282,22 +282,24 @@ class DocxTableConverter:
         As above, the results are written into rows, sub_rows and multi_step_instructions. Those will be modified.
         """
         use_cases: list[str] = []
-        # first init
-        enhanced_table_row = self._enhance_list_view(table=table, row_offset=row_offset)[row_index]
+        complete_table = self._enhance_list_view(table=table, row_offset=row_offset)
+        enhanced_table_row = complete_table[row_index]
         use_cases = _get_use_cases(enhanced_table_row.cells)
         star_case_result_code = (
             enhanced_table_row.cells[len(use_cases) + self._column_index_result_code].text.strip() or None
         )
         star_case_note = enhanced_table_row.cells[len(use_cases) + self._column_index_note].text.strip() or None
-        while row_index < len(self._enhance_list_view(table=table, row_offset=row_offset)):
-            enhanced_table_row = self._enhance_list_view(table=table, row_offset=row_offset)[row_index]
-            step_number = str(int(rows[-1].step_number) + 1)
+        while row_index < len(complete_table):
+            enhanced_table_row = complete_table[row_index]
+            step_number = str(int(last(rows).step_number) + 1)
             description = enhanced_table_row.cells[len(use_cases) + self._column_index_description].text.strip()
             boolean_outcome, subsequent_step_number = _read_subsequent_step_cell(
                 enhanced_table_row.cells[len(use_cases) + self._column_index_check_result]
             )
 
-            if row_index == len(self._enhance_list_view(table=table, row_offset=row_offset)) - 1:
+            this_is_the_last_row = row_index == len(complete_table) - 1
+
+            if this_is_the_last_row:
                 next_step = "Ende"
             else:
                 next_step = str(int(step_number) + 1)
