@@ -8,7 +8,7 @@ from ebddocx2table import EbdChapterInformation, TableNotFoundError
 from ebddocx2table.docxtableconverter import DocxTableConverter
 
 from . import get_all_ebd_keys, get_document, get_ebd_docx_tables
-from .examples import table_e0003, table_e0453, table_e0462, table_e0901
+from .examples import table_e0003, table_e0097, table_e0453, table_e0462, table_e0901
 
 
 @pytest.fixture
@@ -194,6 +194,14 @@ class TestEbdDocx2Table:
                 table_e0462,
                 id="E_0462 with gray outer lefts",
             ),
+            pytest.param(
+                "ebd20221128.docx",
+                "E_0097",
+                "7.56 AD: Austausch der Lieferantenausfallarbeitsclearingliste (Einzelanforderung)",
+                "7.56.1 E_0097_Marktlokationen mit LF-AACL abgleichen",
+                table_e0097,
+                id="E_0097 contains step numbers with *",
+            ),
         ],
     )
     def test_convert_docx_table_to_ebd_table(
@@ -278,6 +286,8 @@ class TestEbdDocx2Table:
                             issue_number = "74"
                         case _:
                             raise
+                    error_msg = f"Error while scraping '{ebd_key}' (#{issue_number}): {value_error}"
+                    pytest.skip(error_msg)
                 except UnboundLocalError as unbound_error:
                     match unbound_error.args[0]:
                         case "cannot access local variable 'role' where it is not associated with a value":
@@ -285,5 +295,5 @@ class TestEbdDocx2Table:
                             issue_number = "22"
                         case _:
                             raise
-                    error_msg = f"Error while scraping '{ebd_key}' (#{issue_number})"
+                    error_msg = f"Error while scraping '{ebd_key}' (#{issue_number}): {unbound_error}"
                     pytest.skip(error_msg)
