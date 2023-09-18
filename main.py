@@ -22,8 +22,8 @@ from ebdtable2graph.models.errors import (
     EbdCrossReferenceNotSupportedError,
     EndeInWrongColumnError,
     NotExactlyTwoOutgoingEdgesError,
-    PathsNotGreaterThanOneError,
     OutcomeCodeAmbiguousError,
+    PathsNotGreaterThanOneError,
 )
 from ebdtable2graph.plantuml import GraphTooComplexForPlantumlError
 
