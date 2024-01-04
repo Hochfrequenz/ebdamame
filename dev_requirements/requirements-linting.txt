@@ -6,7 +6,7 @@
 #
 astroid==3.0.1
     # via pylint
-dill==0.3.6
+dill==0.3.7
     # via pylint
 isort==5.13.2
     # via pylint
