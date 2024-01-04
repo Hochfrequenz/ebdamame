@@ -21,7 +21,7 @@ ebdtable2graph==0.1.19
     # via -r requirements.in
 idna==3.4
     # via requests
-lxml==4.9.2
+lxml==4.9.3
     # via
     #   ebdtable2graph
     #   python-docx
