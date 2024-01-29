@@ -1,6 +1,7 @@
 """
 Contains high level functions to process .docx files
 """
+
 import itertools
 import logging
 import re
