@@ -1,6 +1,7 @@
 """
 This module converts tables read from the docx file into a format that is easily accessible (but still a table).
 """
+
 import logging
 import re
 from enum import Enum

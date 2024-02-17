@@ -96,7 +96,7 @@ class TestEbdDocx2Table:
         [
             pytest.param("ebd20221128.docx", "E_0003", 1, id="E_0003: One table on only one page"),
             pytest.param("ebd20221128.docx", "E_0015", 1, id="E_0015: one table spanning multiple pages"),
-            pytest.param("ebd20221128.docx", "E_0901", 2, id="E_0901: multiple tables on multiple pages")
+            pytest.param("ebd20221128.docx", "E_0901", 2, id="E_0901: multiple tables on multiple pages"),
             # pytest.param("ebd20221128.docx", "E_0461"), # https://github.com/Hochfrequenz/ebd_docx_to_table/issues/6
         ],
     )
