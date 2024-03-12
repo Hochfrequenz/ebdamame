@@ -9,7 +9,7 @@ from typing import Dict, List, Tuple
 from docx import Document  # type:ignore[import]
 from docx.table import Table  # type:ignore[import]
 
-import ebddocx2table
+import ebdamame
 
 
 def get_document(datafiles, filename: str) -> Document:
@@ -17,7 +17,7 @@ def get_document(datafiles, filename: str) -> Document:
     a datafiles compatible wrapper around ebddocx2table.get_document
     """
     path = datafiles / Path(filename)
-    return ebddocx2table.get_document(path)
+    return ebdamame.get_document(path)
 
 
 def get_ebd_docx_tables(datafiles, filename: str, ebd_key: str) -> List[Table]:
@@ -25,12 +25,12 @@ def get_ebd_docx_tables(datafiles, filename: str, ebd_key: str) -> List[Table]:
     a datafiles compatible wrapper around ebddocx2table.get_ebd_docx_tables
     """
     path = datafiles / Path(filename)
-    return ebddocx2table.get_ebd_docx_tables(path, ebd_key=ebd_key)
+    return ebdamame.get_ebd_docx_tables(path, ebd_key=ebd_key)
 
 
-def get_all_ebd_keys(datafiles, filename: str) -> Dict[str, Tuple[str, ebddocx2table.EbdChapterInformation]]:
+def get_all_ebd_keys(datafiles, filename: str) -> Dict[str, Tuple[str, ebdamame.EbdChapterInformation]]:
     """
     a datafiles compatible wrapper around ebddocx2table.get_all_ebd_keys
     """
     path = datafiles / Path(filename)
-    return ebddocx2table.get_all_ebd_keys(path)
+    return ebdamame.get_all_ebd_keys(path)

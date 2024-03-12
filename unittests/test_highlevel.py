@@ -4,8 +4,8 @@ import pytest  # type:ignore[import]
 from docx.table import Table  # type:ignore[import]
 from ebdtable2graph.models import EbdTable
 
-from ebddocx2table import EbdChapterInformation, TableNotFoundError
-from ebddocx2table.docxtableconverter import DocxTableConverter
+from ebdamame import EbdChapterInformation, TableNotFoundError
+from ebdamame.docxtableconverter import DocxTableConverter
 
 from . import get_all_ebd_keys, get_document, get_ebd_docx_tables
 from .examples import table_e0003, table_e0097, table_e0453, table_e0462, table_e0901
@@ -18,7 +18,7 @@ def get_ebd_keys_and_files(datafiles, request) -> List[Tuple[str, str]]:
     return list(all_keys_and_files)
 
 
-class TestEbdDocx2Table:
+class TestEbdamame:
     """
     A class for tests of the entire package/library
     """
@@ -263,9 +263,9 @@ class TestEbdDocx2Table:
                 # In the long run, all these catchers shall be removed.
                 except AttributeError as attribute_error:
                     if attribute_error.name == "_column_index_step_number":
-                        pytest.skip("https://github.com/Hochfrequenz/ebddocx2table/issues/71")
+                        pytest.skip("https://github.com/Hochfrequenz/ebdamame/issues/71")
                 except TableNotFoundError:
-                    # https://github.com/Hochfrequenz/ebd_docx_to_table/issues/9
+                    # https://github.com/Hochfrequenz/ebdamame/issues/9
                     pass  # ignore for now
                 except ValueError as value_error:
                     # Simply run the test, then see how many of the subtests pass and which are skipped.
@@ -273,16 +273,16 @@ class TestEbdDocx2Table:
                     # This library has probably reached v1.0.0 if this catch block is not necessary anymore.
                     match value_error.args[0]:
                         case "None is not in list":
-                            # https://github.com/Hochfrequenz/ebd_docx_to_table/issues/20
+                            # https://github.com/Hochfrequenz/ebdamame/issues/20
                             issue_number = "20"
                         case "Exactly one of the entries in sub_rows has to have check_result.result True":
-                            # https://github.com/Hochfrequenz/ebd_docx_to_table/issues/21
+                            # https://github.com/Hochfrequenz/ebdamame/issues/21
                             issue_number = "21"
                         case "The cell content '--' does not belong to a ja/nein cell":
-                            # https://github.com/Hochfrequenz/ebd_docx_to_table/issues/23
+                            # https://github.com/Hochfrequenz/ebdamame/issues/23
                             issue_number = "23"
                         case "The cell content 'gültiges daten-ergebnis' does not belong to a ja/nein cell":
-                            # https://github.com/Hochfrequenz/ebd_docx_to_table/issues/74
+                            # https://github.com/Hochfrequenz/ebdamame/issues/74
                             issue_number = "74"
                         case _:
                             raise
@@ -291,7 +291,7 @@ class TestEbdDocx2Table:
                 except UnboundLocalError as unbound_error:
                     match unbound_error.args[0]:
                         case "cannot access local variable 'role' where it is not associated with a value":
-                            # https://github.com/Hochfrequenz/ebd_docx_to_table/issues/22
+                            # https://github.com/Hochfrequenz/ebdamame/issues/22
                             issue_number = "22"
                         case _:
                             raise
