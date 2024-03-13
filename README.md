@@ -1,27 +1,24 @@
-# ebddocx2table
+# ebdamame
 
-> [!IMPORTANT]
-⚠ This is the last version using the name `ebddocx2table`. Both the repository and the Python package will be renamed to `ebdamame`.
+![Unittests status badge](https://github.com/Hochfrequenz/ebdamame/workflows/Unittests/badge.svg)
+![Coverage status badge](https://github.com/Hochfrequenz/ebdamame/workflows/Coverage/badge.svg)
+![Linting status badge](https://github.com/Hochfrequenz/ebdamame/workflows/Linting/badge.svg)
+![Black status badge](https://github.com/Hochfrequenz/ebdamame/workflows/Black/badge.svg)
+![PyPi Status Badge](https://img.shields.io/pypi/v/ebdamame)
 
-![Unittests status badge](https://github.com/Hochfrequenz/ebd_docx_to_table/workflows/Unittests/badge.svg)
-![Coverage status badge](https://github.com/Hochfrequenz/ebd_docx_to_table/workflows/Coverage/badge.svg)
-![Linting status badge](https://github.com/Hochfrequenz/ebd_docx_to_table/workflows/Linting/badge.svg)
-![Black status badge](https://github.com/Hochfrequenz/ebd_docx_to_table/workflows/Black/badge.svg)
-![PyPi Status Badge](https://img.shields.io/pypi/v/ebddocx2table)
-
-🇩🇪 Dieses Repository enthält ein Python-Paket namens [`ebddocx2table`](https://pypi.org/project/ebddocx2table), das genutzt werden kann, um aus .docx-Dateien maschinenlesbare Tabellen, die einen Entscheidungsbaum (EBD) modellieren, zu extrahieren (scrapen).
+🇩🇪 Dieses Repository enthält ein Python-Paket namens [`ebdamame`](https://pypi.org/project/ebdamame) (früher: `ebddocx2table`), das genutzt werden kann, um aus .docx-Dateien maschinenlesbare Tabellen, die einen Entscheidungsbaum (EBD) modellieren, zu extrahieren (scrapen).
 Diese Entscheidungsbäume sind Teil eines regulatorischen Regelwerks für die deutsche Energiewirtschaft und kommen in der Eingangsprüfung der Marktkommunikation zum Einsatz.
 Die mit diesem Paket erstellten maschinenlesbaren Tabellen können mit [`ebdtable2graph`](https://pypi.org/project/ebdtable2graph) in echte Graphen und Diagramme umgewandelt werden.
 Exemplarische Ergebnisse des Scrapings finden sich als .json-Dateien im Repository [`machine-readable_entscheidungsbaumdiagramme`](https://github.com/Hochfrequenz/machine-readable_entscheidungsbaumdiagramme/).
 
-🇬🇧 This repository contains the source code of the Python package [`ebddocx2table`](https://pypi.org/project/ebddocx2table).
+🇬🇧 This repository contains the source code of the Python package [`ebdamame`](https://pypi.org/project/ebdamame) (formerly published as `ebddocx2table`).
 
 ## Rationale
 
-Assume, that you want to analyse or visualize the Entscheidungsbaumdiagramme (EBD) by EDI@Energy.
+Assume that you want to analyse or visualize the Entscheidungsbaumdiagramme (EBD) by EDI@Energy.
 The website edi-energy.de, as always, only provides you with PDF or Word files instead of _really_ digitized data.
 
-The package `ebddocx2table` scrapes the `.docx` files and returns data in a model defined in the "sister" package [`ebdtable2graph`](https://pypi.org/project/ebdtable2graph).
+The package `ebdamame` scrapes the `.docx` files and returns data in a model defined in the "sister" package [`ebdtable2graph`](https://pypi.org/project/ebdtable2graph).
 
 Once you scraped the data (using this package) you can plot it with [`ebdtable2graph`](https://pypi.org/project/ebdtable2graph).
 
@@ -30,7 +27,7 @@ Once you scraped the data (using this package) you can plot it with [`ebdtable2g
 In any case, install the repo from PyPI:
 
 ```bash
-pip install ebddocx2table
+pip install ebdamame
 ```
 
 ### Use as a library
@@ -41,8 +38,8 @@ from pathlib import Path
 
 import cattrs
 
-from ebddocx2table import TableNotFoundError, get_all_ebd_keys, get_ebd_docx_tables  # type:ignore[import]
-from ebddocx2table.docxtableconverter import DocxTableConverter  # type:ignore[import]
+from ebdamame import TableNotFoundError, get_all_ebd_keys, get_ebd_docx_tables  # type:ignore[import]
+from ebdamame.docxtableconverter import DocxTableConverter  # type:ignore[import]
 
 docx_file_path = Path("unittests/test_data/ebd20230629_v34.docx")
 # download this .docx File from edi-energy.de or find it in the unittests of this repository.

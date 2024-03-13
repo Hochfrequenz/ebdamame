@@ -29,8 +29,8 @@ from ebdtable2graph.models.errors import (
 from ebdtable2graph.plantuml import GraphTooComplexForPlantumlError
 
 # pylint:disable=import-error
-from ebddocx2table import TableNotFoundError, get_all_ebd_keys, get_ebd_docx_tables  # type:ignore[import]
-from ebddocx2table.docxtableconverter import DocxTableConverter  # type:ignore[import]
+from ebdamame import TableNotFoundError, get_all_ebd_keys, get_ebd_docx_tables  # type:ignore[import]
+from ebdamame.docxtableconverter import DocxTableConverter  # type:ignore[import]
 
 
 def _dump_puml(puml_path: Path, ebd_graph: EbdGraph) -> None:

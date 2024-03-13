@@ -1,5 +1,5 @@
 [project]
-name = "ebddocx2table"
+name = "ebdamame"
 description = "A scraper to library to scrape .docx files with 'Entscheidungsbaumdiagramm' tables into a truely machine readable structure"
 license = { text = "GPL" }
 requires-python = ">=3.11"
@@ -27,8 +27,8 @@ dependencies = [
 dynamic = ["readme", "version"]
 
 [project.urls]
-Changelog = "https://github.com/Hochfrequenz/ebddocx2table/releases"
-Homepage = "https://github.com/Hochfrequenz/ebddocx2table"
+Changelog = "https://github.com/Hochfrequenz/ebdamame/releases"
+Homepage = "https://github.com/Hochfrequenz/ebdamame"
 
 [tool.black]
 line-length = 120
