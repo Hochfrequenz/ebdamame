@@ -1,5 +1,8 @@
 # ebddocx2table
 
+> [!IMPORTANT]
+⚠ This is the last version using the name `ebddocx2table`. Both the repository and the Python package will be renamed to `ebdamame`.
+
 ![Unittests status badge](https://github.com/Hochfrequenz/ebd_docx_to_table/workflows/Unittests/badge.svg)
 ![Coverage status badge](https://github.com/Hochfrequenz/ebd_docx_to_table/workflows/Coverage/badge.svg)
 ![Linting status badge](https://github.com/Hochfrequenz/ebd_docx_to_table/workflows/Linting/badge.svg)
