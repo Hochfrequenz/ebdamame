@@ -52,7 +52,7 @@ fragments = [{ path = "README.md" }]
 source = "vcs"
 
 [tool.hatch.build.hooks.vcs]
-version-file = "src/_ebddocx2table_version.py"
+version-file = "src/_ebdamame_version.py"
 template = '''
 version = "{version}"
 '''
