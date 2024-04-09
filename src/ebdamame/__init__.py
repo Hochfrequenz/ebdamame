@@ -48,6 +48,8 @@ def _get_tables_and_paragaphs(document: Document) -> Generator[Union[Table, Para
             yield Paragraph(item, document)
         elif isinstance(item, CT_Tbl):
             yield Table(item, document)
+        else:
+            _logger.debug("Item %s is neither Paragraph nor Table", str(item))
 
 
 _ebd_key_pattern = re.compile(r"^E_\d{4}$")
@@ -138,7 +140,7 @@ def get_ebd_docx_tables(docx_file_path: Path, ebd_key: str) -> List[Table]:
         ):
             table: Table = table_or_paragraph
             tables.append(table)
-            # Now we have to check if the EBD table spans multiple pages and _maybe_ we have to collect more tables.
+            # Now we have to check if the EBD table spans multiple pages, and _maybe_ we have to collect more tables.
             # The funny thing is: Sometimes the authors create multiple tables split over multiple lines which belong
             # together, sometimes they create 1 proper table that spans multiple pages.
             # The latter case (1 docx table spanning >1 pages) is transparent to the extraction logic; i.e. python-docx
