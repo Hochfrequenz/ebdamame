@@ -19,7 +19,7 @@ click==8.1.7
     # via -r requirements.in
 ebdtable2graph==0.1.20
     # via -r requirements.in
-idna==3.4
+idna==3.7
     # via requests
 lxml==4.9.3
     # via
