@@ -213,32 +213,33 @@ def _enrich_paragraphs_with_sections(
     subsection = 1
     subsection_title: Optional[str] = None
     for paragraph in paragraphs:
-        match paragraph.style.style_id:
-            case "berschrift1":
-                chapter = next(chapter_counter)
-                chapter_title = paragraph.text.strip()
-                section_counter = itertools.count(start=1)
-                section_title = None
-                subsection_counter = itertools.count(start=1)
-                subsection_title = None
-            case "berschrift2":
-                section = next(section_counter)
-                section_title = paragraph.text.strip()
-                subsection_counter = itertools.count(start=1)
-                subsection_title = None
-            case "berschrift3":
-                subsection = next(subsection_counter)
-                subsection_title = paragraph.text.strip()
-        location = EbdChapterInformation(
-            chapter=chapter,
-            section=section,
-            subsection=subsection,
-            chapter_title=chapter_title,
-            section_title=section_title,
-            subsection_title=subsection_title,
-        )
-        _logger.debug("Handling Paragraph %i.%i.%i", chapter, section, subsection)
-        yield paragraph, location
+        if paragraph.style is not None:
+            match paragraph.style.style_id:
+                case "berschrift1":
+                    chapter = next(chapter_counter)
+                    chapter_title = paragraph.text.strip()
+                    section_counter = itertools.count(start=1)
+                    section_title = None
+                    subsection_counter = itertools.count(start=1)
+                    subsection_title = None
+                case "berschrift2":
+                    section = next(section_counter)
+                    section_title = paragraph.text.strip()
+                    subsection_counter = itertools.count(start=1)
+                    subsection_title = None
+                case "berschrift3":
+                    subsection = next(subsection_counter)
+                    subsection_title = paragraph.text.strip()
+            location = EbdChapterInformation(
+                chapter=chapter,
+                section=section,
+                subsection=subsection,
+                chapter_title=chapter_title,
+                section_title=section_title,
+                subsection_title=subsection_title,
+            )
+            _logger.debug("Handling Paragraph %i.%i.%i", chapter, section, subsection)
+            yield paragraph, location
 
 
 def get_all_ebd_keys(docx_file_path: Path) -> Dict[str, Tuple[str, EbdChapterInformation]]:
