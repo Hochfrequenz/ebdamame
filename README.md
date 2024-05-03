@@ -8,7 +8,7 @@
 
 🇩🇪 Dieses Repository enthält ein Python-Paket namens [`ebdamame`](https://pypi.org/project/ebdamame) (früher: `ebddocx2table`), das genutzt werden kann, um aus .docx-Dateien maschinenlesbare Tabellen, die einen Entscheidungsbaum (EBD) modellieren, zu extrahieren (scrapen).
 Diese Entscheidungsbäume sind Teil eines regulatorischen Regelwerks für die deutsche Energiewirtschaft und kommen in der Eingangsprüfung der Marktkommunikation zum Einsatz.
-Die mit diesem Paket erstellten maschinenlesbaren Tabellen können mit [`ebdtable2graph`](https://pypi.org/project/ebdtable2graph) in echte Graphen und Diagramme umgewandelt werden.
+Die mit diesem Paket erstellten maschinenlesbaren Tabellen können mit [`rebdhuhn`](https://pypi.org/project/rebdhuhn) (früher: `ebdtable2graph`) in echte Graphen und Diagramme umgewandelt werden.
 Exemplarische Ergebnisse des Scrapings finden sich als .json-Dateien im Repository [`machine-readable_entscheidungsbaumdiagramme`](https://github.com/Hochfrequenz/machine-readable_entscheidungsbaumdiagramme/).
 
 🇬🇧 This repository contains the source code of the Python package [`ebdamame`](https://pypi.org/project/ebdamame) (formerly published as `ebddocx2table`).
@@ -18,9 +18,9 @@ Exemplarische Ergebnisse des Scrapings finden sich als .json-Dateien im Reposito
 Assume that you want to analyse or visualize the Entscheidungsbaumdiagramme (EBD) by EDI@Energy.
 The website edi-energy.de, as always, only provides you with PDF or Word files instead of _really_ digitized data.
 
-The package `ebdamame` scrapes the `.docx` files and returns data in a model defined in the "sister" package [`ebdtable2graph`](https://pypi.org/project/ebdtable2graph).
+The package `ebdamame` scrapes the `.docx` files and returns data in a model defined in the "sister" package [`rebdhuhn`](https://pypi.org/project/rebdhuhn) (formerly known as `ebdtable2graph`).
 
-Once you scraped the data (using this package) you can plot it with [`ebdtable2graph`](https://pypi.org/project/ebdtable2graph).
+Once you scraped the data (using this package) you can plot it with [`rebdhuhn`](https://pypi.org/project/rebdhuhn).
 
 ## How to use the package
 
