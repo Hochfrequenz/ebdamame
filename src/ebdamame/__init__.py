@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Dict, Generator, Iterable, List, Optional, Tuple, Union
 
 import attrs
-from docx import Document  # type:ignore[import]
+from docx.document import Document  # type:ignore[import]
 from docx.oxml import CT_P, CT_Tbl  # type:ignore[import]
 from docx.table import Table, _Cell  # type:ignore[import]
 from docx.text.paragraph import Paragraph  # type:ignore[import]
