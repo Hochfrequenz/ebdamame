@@ -2,9 +2,9 @@
 module contains data as we expected them to be scraped from the docx file
 """
 
-from ebdtable2graph.models import EbdTable
-from ebdtable2graph.models.ebd_table import (
+from rebdhuhn.models.ebd_table import (
     EbdCheckResult,
+    EbdTable,
     EbdTableMetaData,
     EbdTableRow,
     EbdTableSubRow,

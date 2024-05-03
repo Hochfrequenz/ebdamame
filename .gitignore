@@ -132,5 +132,3 @@ dmypy.json
 
 # vscode settings
 .vscode/
-
-src/_ebdamame_version.py

@@ -17,7 +17,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
 ]
 dependencies = [
-    "ebdtable2graph>=0.1.19",
+    "rebdhuhn>=0.2.3",
     "python-docx",
     "more_itertools",
     "attrs",
@@ -52,10 +52,7 @@ fragments = [{ path = "README.md" }]
 source = "vcs"
 
 [tool.hatch.build.hooks.vcs]
-version-file = "src/_ebddocx2table_version.py"
-template = '''
-version = "{version}"
-'''
+version-file = "src/ebdamame/version.py"
 
 [tool.hatch.build.targets.sdist]
 exclude = ["/unittests"]

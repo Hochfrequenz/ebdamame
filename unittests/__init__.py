@@ -14,7 +14,7 @@ import ebdamame
 
 def get_document(datafiles, filename: str) -> Document:
     """
-    a datafiles compatible wrapper around ebddocx2table.get_document
+    a datafiles compatible wrapper around ebdamame.get_document
     """
     path = datafiles / Path(filename)
     return ebdamame.get_document(path)
@@ -22,7 +22,7 @@ def get_document(datafiles, filename: str) -> Document:
 
 def get_ebd_docx_tables(datafiles, filename: str, ebd_key: str) -> List[Table]:
     """
-    a datafiles compatible wrapper around ebddocx2table.get_ebd_docx_tables
+    a datafiles compatible wrapper around ebdamame.get_ebd_docx_tables
     """
     path = datafiles / Path(filename)
     return ebdamame.get_ebd_docx_tables(path, ebd_key=ebd_key)
@@ -30,7 +30,7 @@ def get_ebd_docx_tables(datafiles, filename: str, ebd_key: str) -> List[Table]:
 
 def get_all_ebd_keys(datafiles, filename: str) -> Dict[str, Tuple[str, ebdamame.EbdChapterInformation]]:
     """
-    a datafiles compatible wrapper around ebddocx2table.get_all_ebd_keys
+    a datafiles compatible wrapper around ebdamame.get_all_ebd_keys
     """
     path = datafiles / Path(filename)
     return ebdamame.get_all_ebd_keys(path)
