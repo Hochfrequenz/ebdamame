@@ -9,7 +9,7 @@ from itertools import cycle, groupby
 from typing import Generator, List, Literal, Optional, Tuple
 
 import attrs
-from docx.table import Table, _Cell, _Row  # type:ignore[import]
+from docx.table import Table, _Cell, _Row
 from ebdtable2graph.models import EbdTable, EbdTableRow, EbdTableSubRow
 from ebdtable2graph.models.ebd_table import _STEP_NUMBER_REGEX, EbdCheckResult, EbdTableMetaData, MultiStepInstruction
 from more_itertools import first, first_true, last
@@ -46,6 +46,9 @@ def _get_index_of_first_column_with_step_number(cells: List[_Cell]) -> int:
     first_step_number_cell = first_true(
         cells, pred=lambda cell: _step_number_pattern.match(cell.text.strip()) is not None
     )
+    if first_step_number_cell is None:
+        raise ValueError("No cell containing a valid step number found.")
+
     step_number_column_index = cells.index(first_step_number_cell)
     _logger.debug("The step number is in column %i", step_number_column_index)
     return step_number_column_index
