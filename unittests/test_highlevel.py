@@ -2,7 +2,7 @@ from typing import List, Tuple
 
 import pytest  # type:ignore[import]
 from docx.table import Table
-from ebdtable2graph.models import EbdTable
+from rebdhuhn.models.ebd_table import EbdTable
 
 from ebdamame import EbdChapterInformation, TableNotFoundError
 from ebdamame.docxtableconverter import DocxTableConverter
