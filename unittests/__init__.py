@@ -6,13 +6,13 @@ Further reading: https://docs.pytest.org/en/6.2.x/goodpractices.html#tests-outsi
 from pathlib import Path
 from typing import Dict, List, Tuple
 
-from docx import Document  # type:ignore[import]
-from docx.table import Table  # type:ignore[import]
+from docx.document import Document as DocumentType
+from docx.table import Table
 
 import ebdamame
 
 
-def get_document(datafiles, filename: str) -> Document:
+def get_document(datafiles, filename: str) -> DocumentType:
     """
     a datafiles compatible wrapper around ebdamame.get_document
     """

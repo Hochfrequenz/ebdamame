@@ -9,7 +9,7 @@ from itertools import cycle, groupby
 from typing import Generator, List, Literal, Optional, Tuple
 
 import attrs
-from docx.table import Table, _Cell, _Row  # type:ignore[import]
+from docx.table import Table, _Cell, _Row
 from more_itertools import first, first_true, last
 from rebdhuhn.models.ebd_table import (
     _STEP_NUMBER_REGEX,

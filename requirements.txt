@@ -6,7 +6,6 @@
 #
 attrs==23.2.0
     # via
-    #   -r requirements.in
     #   cattrs
     #   rebdhuhn
 cattrs==23.2.3

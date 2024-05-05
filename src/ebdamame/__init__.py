@@ -10,15 +10,16 @@ from pathlib import Path
 from typing import Dict, Generator, Iterable, List, Optional, Tuple, Union
 
 import attrs
-from docx import Document  # type:ignore[import]
-from docx.oxml import CT_P, CT_Tbl  # type:ignore[import]
-from docx.table import Table, _Cell  # type:ignore[import]
-from docx.text.paragraph import Paragraph  # type:ignore[import]
+import docx
+from docx.document import Document as DocumentType
+from docx.oxml import CT_P, CT_Tbl
+from docx.table import Table, _Cell
+from docx.text.paragraph import Paragraph
 
 _logger = logging.getLogger(__name__)
 
 
-def get_document(docx_file_path: Path) -> Document:
+def get_document(docx_file_path: Path) -> DocumentType:
     """
     opens and returns the document specified in the docx_file_path using python-docx
     """
@@ -29,14 +30,14 @@ def get_document(docx_file_path: Path) -> Document:
         # but then switched from StringIO to BytesIO (without explicit 'utf-8') because of:
         # UnicodeDecodeError: 'charmap' codec can't decode byte 0x81 in position 605: character maps to <undefined>
     try:
-        document = Document(source_stream)
+        document = docx.Document(source_stream)
         _logger.info("Successfully read the file '%s'", docx_file_path)
         return document
     finally:
         source_stream.close()
 
 
-def _get_tables_and_paragaphs(document: Document) -> Generator[Union[Table, Paragraph], None, None]:
+def _get_tables_and_paragraphs(document: DocumentType) -> Generator[Union[Table, Paragraph], None, None]:
     """
     Yields tables and paragraphs from the given document in the order in which they occur in the document.
     This is helpful because document.tables and document.paragraphs are de-coupled and give you no information which
@@ -116,7 +117,7 @@ def get_ebd_docx_tables(docx_file_path: Path, ebd_key: str) -> List[Table]:
 
     is_inside_subsection_of_requested_table: bool = False
     tables: List[Table] = []
-    tables_and_paragraphs = _get_tables_and_paragaphs(document)
+    tables_and_paragraphs = _get_tables_and_paragraphs(document)
     for table_or_paragraph in tables_and_paragraphs:
         if isinstance(table_or_paragraph, Paragraph):
             paragraph: Paragraph = table_or_paragraph
@@ -213,33 +214,33 @@ def _enrich_paragraphs_with_sections(
     subsection = 1
     subsection_title: Optional[str] = None
     for paragraph in paragraphs:
-        if paragraph.style is not None:
-            match paragraph.style.style_id:
-                case "berschrift1":
-                    chapter = next(chapter_counter)
-                    chapter_title = paragraph.text.strip()
-                    section_counter = itertools.count(start=1)
-                    section_title = None
-                    subsection_counter = itertools.count(start=1)
-                    subsection_title = None
-                case "berschrift2":
-                    section = next(section_counter)
-                    section_title = paragraph.text.strip()
-                    subsection_counter = itertools.count(start=1)
-                    subsection_title = None
-                case "berschrift3":
-                    subsection = next(subsection_counter)
-                    subsection_title = paragraph.text.strip()
-            location = EbdChapterInformation(
-                chapter=chapter,
-                section=section,
-                subsection=subsection,
-                chapter_title=chapter_title,
-                section_title=section_title,
-                subsection_title=subsection_title,
-            )
-            _logger.debug("Handling Paragraph %i.%i.%i", chapter, section, subsection)
-            yield paragraph, location
+        # since pyton-docx 1.1.2 there are type hints; seems like the style is not guaranteed to be not None
+        match paragraph.style.style_id:  #  type:ignore[union-attr]
+            case "berschrift1":
+                chapter = next(chapter_counter)
+                chapter_title = paragraph.text.strip()
+                section_counter = itertools.count(start=1)
+                section_title = None
+                subsection_counter = itertools.count(start=1)
+                subsection_title = None
+            case "berschrift2":
+                section = next(section_counter)
+                section_title = paragraph.text.strip()
+                subsection_counter = itertools.count(start=1)
+                subsection_title = None
+            case "berschrift3":
+                subsection = next(subsection_counter)
+                subsection_title = paragraph.text.strip()
+        location = EbdChapterInformation(
+            chapter=chapter,
+            section=section,
+            subsection=subsection,
+            chapter_title=chapter_title,
+            section_title=section_title,
+            subsection_title=subsection_title,
+        )
+        _logger.debug("Handling Paragraph %i.%i.%i", chapter, section, subsection)
+        yield paragraph, location
 
 
 def get_all_ebd_keys(docx_file_path: Path) -> Dict[str, Tuple[str, EbdChapterInformation]]:

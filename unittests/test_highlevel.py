@@ -1,7 +1,7 @@
 from typing import List, Tuple
 
 import pytest  # type:ignore[import]
-from docx.table import Table  # type:ignore[import]
+from docx.table import Table
 from rebdhuhn.models.ebd_table import EbdTable
 
 from ebdamame import EbdChapterInformation, TableNotFoundError
