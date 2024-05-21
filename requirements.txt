@@ -6,6 +6,7 @@
 #
 attrs==23.2.0
     # via
+    #   -r requirements.in
     #   cattrs
     #   rebdhuhn
 cattrs==23.2.3
@@ -16,8 +17,6 @@ charset-normalizer==3.3.2
     # via requests
 click==8.1.7
     # via -r requirements.in
-colorama==0.4.6
-    # via click
 idna==3.7
     # via requests
 lxml==5.2.1
@@ -33,7 +32,7 @@ python-docx==1.1.2
     # via -r requirements.in
 rebdhuhn==0.2.3
     # via -r requirements.in
-requests==2.31.0
+requests==2.32.0
     # via rebdhuhn
 svgutils==0.3.4
     # via rebdhuhn
