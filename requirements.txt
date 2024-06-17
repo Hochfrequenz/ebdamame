@@ -38,5 +38,5 @@ svgutils==0.3.4
     # via rebdhuhn
 typing-extensions==4.11.0
     # via python-docx
-urllib3==2.2.1
+urllib3==2.2.2
     # via requests
