@@ -247,7 +247,7 @@ class DocxTableConverter:
             boolean_outcome, subsequent_step_number = _read_subsequent_step_cell(
                 enhanced_table_row.cells[len(use_cases) + self._column_index_check_result]
             )
-            if step_number.endswith("*"): # pylint:disable=possibly-used-before-assignment
+            if step_number.endswith("*"):  # pylint:disable=possibly-used-before-assignment
                 # step number is defined and set at this point, because the enhanced list view always starts with UPPER
                 self._handle_single_table_star_exception(table, multi_step_instructions, row_offset, rows, row_index)
                 break
@@ -263,7 +263,7 @@ class DocxTableConverter:
             sub_rows.append(sub_row)
             if enhanced_table_row.sub_row_position == _EbdSubRowPosition.LOWER:
                 row = EbdTableRow(
-                    description=description, # pylint:disable=possibly-used-before-assignment
+                    description=description,  # pylint:disable=possibly-used-before-assignment
                     # description is defined and set at this point because the enhanced list view always starts with
                     # UPPER. Hence, the second iteration of the outer for loop is the earlist we try access it.
                     step_number=step_number,
