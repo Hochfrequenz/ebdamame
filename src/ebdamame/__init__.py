@@ -12,7 +12,8 @@ from typing import Dict, Generator, Iterable, List, Optional, Tuple, Union
 import attrs
 import docx
 from docx.document import Document as DocumentType
-from docx.oxml import CT_P, CT_Tbl
+from docx.oxml.table import CT_Tbl
+from docx.oxml.text.paragraph import CT_P
 from docx.table import Table, _Cell
 from docx.text.paragraph import Paragraph
 
