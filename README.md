@@ -3,7 +3,7 @@
 ![Unittests status badge](https://github.com/Hochfrequenz/ebdamame/workflows/Unittests/badge.svg)
 ![Coverage status badge](https://github.com/Hochfrequenz/ebdamame/workflows/Coverage/badge.svg)
 ![Linting status badge](https://github.com/Hochfrequenz/ebdamame/workflows/Linting/badge.svg)
-![Black status badge](https://github.com/Hochfrequenz/ebdamame/workflows/Black/badge.svg)
+![Formatting status badge](https://github.com/Hochfrequenz/ebdamame/workflows/Formatting/badge.svg)
 ![PyPi Status Badge](https://img.shields.io/pypi/v/ebdamame)
 
 🇩🇪 Dieses Repository enthält ein Python-Paket namens [`ebdamame`](https://pypi.org/project/ebdamame) (früher: `ebddocx2table`), das genutzt werden kann, um aus .docx-Dateien maschinenlesbare Tabellen, die einen Entscheidungsbaum (EBD) modellieren, zu extrahieren (scrapen).
