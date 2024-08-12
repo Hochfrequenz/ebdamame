@@ -5,7 +5,7 @@
 #
 #    pip-compile-multi
 #
-attrs==24.1.0
+attrs==24.2.0
     # via pytest-subtests
 iniconfig==2.0.0
     # via pytest
