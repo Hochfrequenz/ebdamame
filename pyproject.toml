@@ -73,6 +73,9 @@ truethy-bool = true
 [tool.mypy]
 disable_error_code = []
 
+[tool.pylint."MASTER"]
+ignore = ["src/ebdamame/_version.py"]
+
 [build-system]
 requires = ["hatchling>=1.8.0", "hatch-vcs", "hatch-fancy-pypi-readme"]
 build-backend = "hatchling.build"
@@ -86,6 +89,9 @@ source = "vcs"
 
 [tool.hatch.build.hooks.vcs]
 version-file = "src/ebdamame/_version.py"
+template = '''
+version = "{version}"
+'''
 
 [tool.hatch.build.targets.sdist]
 exclude = ["/unittests"]
