@@ -74,7 +74,7 @@ truethy-bool = true
 disable_error_code = []
 
 [tool.pylint."MASTER"]
-ignore = ["src/ebdamame/_version.py"]
+ignore = ["src/ebdamame/_version.py", "src/ebdamame/version.py"]
 
 [build-system]
 requires = ["hatchling>=1.8.0", "hatch-vcs", "hatch-fancy-pypi-readme"]
