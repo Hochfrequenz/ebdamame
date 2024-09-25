@@ -8,14 +8,14 @@ TYPE_CHECKING = False
 if TYPE_CHECKING:
     from typing import Tuple, Union
 
-    VERSION_TUPLE = Tuple[Union[int, str], ...]
+    VERSION_TUPLE = Tuple[Union[int, str], ...]  # pylint: disable=invalid-name
 else:
-    VERSION_TUPLE = object
+    VERSION_TUPLE = object  # pylint: disable=invalid-name
 
 version: str
 __version__: str
 __version_tuple__: VERSION_TUPLE
 version_tuple: VERSION_TUPLE
 
-__version__ = version = "0.1.6.dev28+gd2fbd24"
+__version__ = version = "0.1.6.dev28+gd2fbd24"  # pylint: disable=invalid-name
 __version_tuple__ = version_tuple = (0, 1, 6, "dev28", "gd2fbd24")
