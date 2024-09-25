@@ -17,6 +17,8 @@ charset-normalizer==3.3.2
     # via requests
 click==8.1.7
     # via -r requirements.in
+colorama==0.4.6
+    # via click
 idna==3.7
     # via requests
 lxml==5.2.1
