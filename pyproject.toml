@@ -86,9 +86,6 @@ source = "vcs"
 
 [tool.hatch.build.hooks.vcs]
 version-file = "src/ebdamame/version.py"
-template = '''
-version = "{version}"
-'''
 
 [tool.hatch.build.targets.sdist]
 exclude = ["/unittests"]
