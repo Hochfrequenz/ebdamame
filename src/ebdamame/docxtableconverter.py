@@ -224,7 +224,7 @@ class DocxTableConverter:
         return result
 
     # I see that there are quite a few local variables, but honestly see no reason to break it down any further.
-    # pylint:disable=too-many-arguments
+    # pylint:disable=too-many-arguments, too-many-positional-arguments
     def _handle_single_table(
         self,
         table: Table,
@@ -281,7 +281,7 @@ class DocxTableConverter:
                 )
 
     # see above boolean_outcome and subsequent_step_number could be ignored iff schemes of *-numbers are always the same
-    # pylint:disable=too-many-locals
+    # pylint:disable=too-many-locals, too-many-positional-arguments
     def _handle_single_table_star_exception(
         self,
         table: Table,
