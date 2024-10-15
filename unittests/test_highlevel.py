@@ -212,27 +212,38 @@ class TestEbdamame:
         actual = converter.convert_docx_tables_to_ebd_table()
         assert actual == expected
 
+    @pytest.mark.snapshot
     @pytest.mark.datafiles("unittests/test_data/ebd20221128.docx")
     @pytest.mark.datafiles("unittests/test_data/ebd20230619_v33.docx")
     @pytest.mark.datafiles("unittests/test_data/ebd20230629_v34.docx")
+    @pytest.mark.datafiles("unittests/test_data/ebd20240403_v35.docx")
+    @pytest.mark.datafiles("unittests/test_data/ebd20250404_v40b.docx")
     @pytest.mark.parametrize(
         "get_ebd_keys_and_files",
         [
+            # pytest.param(
+            #     "ebd20221128.docx",  # this is used as positional argument for the indirect fixture
+            # ),
+            # pytest.param(
+            #     "ebd20230619_v33.docx",  # this is used as positional argument for the indirect fixture
+            #     id="19.06.2023 v3.3 / FV2304",
+            # ),
+            # pytest.param(
+            #     "ebd20230629_v34.docx",
+            #     id="19.06.2023 v3.4 / FV2310",
+            # ),
+            # pytest.param(
+            #    "ebd20240403_v35.docx",
+            #    id="08.10.2024 v3.5 / FV2410",
+            # ),
             pytest.param(
-                "ebd20221128.docx",  # this is used as positional argument for the indirect fixture
-            ),
-            pytest.param(
-                "ebd20230619_v33.docx",  # this is used as positional argument for the indirect fixture
-                id="19.06.2023 v3.3 / FV2304",
-            ),
-            pytest.param(
-                "ebd20230629_v34.docx",
-                id="19.06.2023 v3.4 / FV2310",
+                "ebd20250404_v40b.docx",
+                id="08.10.2024 v3.5 / FV2504",
             ),
         ],
         indirect=["get_ebd_keys_and_files"],  # see `def get_ebd_keys_and_files(datafiles, request)`
     )
-    def test_extraction(self, datafiles, get_ebd_keys_and_files: List[Tuple[str, str]], subtests):
+    def test_extraction(self, datafiles, get_ebd_keys_and_files: List[Tuple[str, str]], subtests, snapshot):
         """
         tests the extraction and conversion without specific assertions
         """
@@ -263,7 +274,7 @@ class TestEbdamame:
                 # In the long run, all these catchers shall be removed.
                 except AttributeError as attribute_error:
                     if attribute_error.name == "_column_index_step_number":
-                        pytest.skip("https://github.com/Hochfrequenz/ebdamame/issues/71")
+                        pytest.skip(f"{ebd_key}\t https://github.com/Hochfrequenz/ebdamame/issues/71")
                 except TableNotFoundError:
                     # https://github.com/Hochfrequenz/ebdamame/issues/9
                     pass  # ignore for now
@@ -297,3 +308,5 @@ class TestEbdamame:
                             raise
                     error_msg = f"Error while scraping '{ebd_key}' (#{issue_number}): {unbound_error}"
                     pytest.skip(error_msg)
+                if actual is not None:
+                    assert actual == snapshot
