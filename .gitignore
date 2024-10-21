@@ -132,3 +132,7 @@ dmypy.json
 
 # vscode settings
 .vscode/
+
+# version number for ebdamame; gets auto-generated during the command
+# python -m build
+src/ebdamame/version.py
