@@ -30,7 +30,7 @@ networkx==3.3
     # via rebdhuhn
 python-docx==1.1.2
     # via -r requirements.in
-rebdhuhn==0.3.0
+rebdhuhn==0.3.1
     # via -r requirements.in
 requests==2.32.0
     # via rebdhuhn
