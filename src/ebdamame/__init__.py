@@ -55,7 +55,7 @@ def _get_tables_and_paragraphs(document: DocumentType) -> Generator[Union[Table,
 
 
 _ebd_key_pattern = re.compile(r"^E_\d{4}$")
-_ebd_key_with_heading_pattern = re.compile(r"^(?P<key>E_\d{4})_(?P<title>.*)\s*$")
+_ebd_key_with_heading_pattern = re.compile(r"^(?P<key>E_\d{4})(_?)(?P<title>.*)\s*$")
 
 
 class TableNotFoundError(Exception):
