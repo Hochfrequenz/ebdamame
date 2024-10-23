@@ -47,7 +47,8 @@ test_packaging = [
 tests = [
     "pytest==8.3.3",
     "pytest-datafiles==3.0.0",
-    "pytest-subtests==0.13.1"
+    "pytest-subtests==0.13.1",
+    "syrupy==4.7.2"
 ]
 type_check = [
     "mypy==1.12.1"
@@ -96,3 +97,7 @@ exclude = ["/unittests"]
 [tool.hatch.build.targets.wheel]
 only-include = ["src"]
 sources = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+markers = ["snapshot: mark a test as a snapshot test"]
