@@ -255,6 +255,9 @@ def get_all_ebd_keys(docx_file_path: Path) -> Dict[str, Tuple[str, EbdChapterInf
     for paragraph, ebd_kapitel in _enrich_paragraphs_with_sections(document.paragraphs):
         match = _ebd_key_with_heading_pattern.match(paragraph.text)
         if match is None:
+            contains_ebd_number = paragraph.text.lstrip().startswith("E_")
+            if contains_ebd_number:
+                _logger.warning("Found EBD number but could not match: '%s'", paragraph.text)
             continue
         ebd_key = match.groupdict()["key"]
         title = match.groupdict()["title"]
