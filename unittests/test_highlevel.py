@@ -39,7 +39,7 @@ class TestEbdamame:
         [
             pytest.param(
                 "ebd20221128.docx",
-                241,
+                244,
                 [
                     # arbitrary checks ("Stichproben") only
                     (
@@ -77,8 +77,8 @@ class TestEbdamame:
                     ),
                 ],
             ),
-            pytest.param("ebd20230619_v33.docx", 249, []),  # number is not double-checked yet
-            pytest.param("ebd20230629_v34.docx", 293, []),  # number is not double-checked yet
+            pytest.param("ebd20230619_v33.docx", 252, []),  # number is not double-checked yet
+            pytest.param("ebd20230629_v34.docx", 295, []),  # number is not double-checked yet
         ],
     )
     def test_get_ebd_keys(
