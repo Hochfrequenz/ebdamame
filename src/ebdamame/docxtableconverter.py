@@ -169,7 +169,10 @@ class DocxTableConverter:
             # remove duplicates. Although there are usually only 5 columns visible, technically there might be even 8.
             # In these cases (e.g. for E_0453) columns like 'Prüfergebnis' simply occur twice in the docx table header.
             distinct_cell_texts: List[str] = [
-                x[0] for x in groupby(first(docx_tables).row_cells(row_index), lambda cell: cell.text)
+                x[0]
+                for x in groupby(
+                    first(docx_tables).rows[row_index].cells, lambda cell: cell.text
+                )  # row_cells() is deprecated and returns false rows
             ]
             for column_index, table_cell_text in enumerate(distinct_cell_texts):
                 if row_index == 0 and _is_pruefende_rolle_cell_text(table_cell_text):
@@ -188,7 +191,8 @@ class DocxTableConverter:
                     self._column_index_result_code = column_index
                 elif table_cell_text == "Hinweis":
                     self._column_index_note = column_index
-
+        # if not self._column_index_step_number:
+        # self._column_index_step_number = 0
         self._metadata = EbdTableMetaData(ebd_code=ebd_key, sub_chapter=sub_chapter, chapter=chapter, role=role)
 
     @staticmethod
