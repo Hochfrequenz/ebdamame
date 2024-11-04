@@ -17,7 +17,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
 ]
 dependencies = [
-    "ebdtable2graph>=0.1.19",
+    "rebdhuhn>=0.2.3",
     "python-docx",
     "more_itertools",
     "attrs",
@@ -25,6 +25,34 @@ dependencies = [
     # add all the dependencies from requirements.in here, too
 ]
 dynamic = ["readme", "version"]
+
+[project.optional-dependencies]
+coverage = [
+    "coverage==7.6.4"
+]
+formatting = [
+    "black==24.10.0",
+    "isort==5.13.2"
+]
+linting = [
+    "pylint==3.3.1"
+]
+spellcheck = [
+    "codespell==2.3.0"
+]
+test_packaging = [
+    "build==1.2.2.post1",
+    "twine==5.1.1"
+]
+tests = [
+    "pytest==8.3.3",
+    "pytest-datafiles==3.0.0",
+    "pytest-subtests==0.13.1",
+    "syrupy==4.7.2"
+]
+type_check = [
+    "mypy==1.13.0"
+]
 
 [project.urls]
 Changelog = "https://github.com/Hochfrequenz/ebdamame/releases"
@@ -40,6 +68,12 @@ profile = "black"
 [tool.pylint."MESSAGES CONTROL"]
 max-line-length = 120
 
+[mypy]
+truethy-bool = true
+
+[tool.mypy]
+disable_error_code = []
+
 [build-system]
 requires = ["hatchling>=1.8.0", "hatch-vcs", "hatch-fancy-pypi-readme"]
 build-backend = "hatchling.build"
@@ -52,7 +86,7 @@ fragments = [{ path = "README.md" }]
 source = "vcs"
 
 [tool.hatch.build.hooks.vcs]
-version-file = "src/_ebddocx2table_version.py"
+version-file = "src/ebdamame/version.py"
 template = '''
 version = "{version}"
 '''
@@ -63,3 +97,7 @@ exclude = ["/unittests"]
 [tool.hatch.build.targets.wheel]
 only-include = ["src"]
 sources = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+markers = ["snapshot: mark a test as a snapshot test"]

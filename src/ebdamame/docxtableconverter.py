@@ -9,10 +9,17 @@ from itertools import cycle, groupby
 from typing import Generator, List, Literal, Optional, Tuple
 
 import attrs
-from docx.table import Table, _Cell, _Row  # type:ignore[import]
-from ebdtable2graph.models import EbdTable, EbdTableRow, EbdTableSubRow
-from ebdtable2graph.models.ebd_table import _STEP_NUMBER_REGEX, EbdCheckResult, EbdTableMetaData, MultiStepInstruction
+from docx.table import Table, _Cell, _Row
 from more_itertools import first, first_true, last
+from rebdhuhn.models.ebd_table import (
+    _STEP_NUMBER_REGEX,
+    EbdCheckResult,
+    EbdTable,
+    EbdTableMetaData,
+    EbdTableRow,
+    EbdTableSubRow,
+    MultiStepInstruction,
+)
 
 _logger = logging.getLogger(__name__)
 
@@ -46,6 +53,9 @@ def _get_index_of_first_column_with_step_number(cells: List[_Cell]) -> int:
     first_step_number_cell = first_true(
         cells, pred=lambda cell: _step_number_pattern.match(cell.text.strip()) is not None
     )
+    if first_step_number_cell is None:
+        raise ValueError("No cell containing a valid step number found.")
+
     step_number_column_index = cells.index(first_step_number_cell)
     _logger.debug("The step number is in column %i", step_number_column_index)
     return step_number_column_index
@@ -159,7 +169,10 @@ class DocxTableConverter:
             # remove duplicates. Although there are usually only 5 columns visible, technically there might be even 8.
             # In these cases (e.g. for E_0453) columns like 'Prüfergebnis' simply occur twice in the docx table header.
             distinct_cell_texts: List[str] = [
-                x[0] for x in groupby(first(docx_tables).row_cells(row_index), lambda cell: cell.text)
+                x[0]
+                for x in groupby(
+                    first(docx_tables).rows[row_index].cells, lambda cell: cell.text
+                )  # row_cells() is deprecated and returns false rows
             ]
             for column_index, table_cell_text in enumerate(distinct_cell_texts):
                 if row_index == 0 and _is_pruefende_rolle_cell_text(table_cell_text):
@@ -178,7 +191,8 @@ class DocxTableConverter:
                     self._column_index_result_code = column_index
                 elif table_cell_text == "Hinweis":
                     self._column_index_note = column_index
-
+        # if not self._column_index_step_number:
+        # self._column_index_step_number = 0
         self._metadata = EbdTableMetaData(ebd_code=ebd_key, sub_chapter=sub_chapter, chapter=chapter, role=role)
 
     @staticmethod
@@ -219,7 +233,7 @@ class DocxTableConverter:
         return result
 
     # I see that there are quite a few local variables, but honestly see no reason to break it down any further.
-    # pylint:disable=too-many-arguments
+    # pylint:disable=too-many-arguments, too-many-positional-arguments
     def _handle_single_table(
         self,
         table: Table,
@@ -242,7 +256,8 @@ class DocxTableConverter:
             boolean_outcome, subsequent_step_number = _read_subsequent_step_cell(
                 enhanced_table_row.cells[len(use_cases) + self._column_index_check_result]
             )
-            if step_number.endswith("*"):
+            if step_number.endswith("*"):  # pylint:disable=possibly-used-before-assignment
+                # step number is defined and set at this point, because the enhanced list view always starts with UPPER
                 self._handle_single_table_star_exception(table, multi_step_instructions, row_offset, rows, row_index)
                 break
             sub_row = EbdTableSubRow(
@@ -257,7 +272,9 @@ class DocxTableConverter:
             sub_rows.append(sub_row)
             if enhanced_table_row.sub_row_position == _EbdSubRowPosition.LOWER:
                 row = EbdTableRow(
-                    description=description,
+                    description=description,  # pylint:disable=possibly-used-before-assignment
+                    # description is defined and set at this point because the enhanced list view always starts with
+                    # UPPER. Hence, the second iteration of the outer for loop is the earlist we try access it.
                     step_number=step_number,
                     sub_rows=sub_rows,
                     use_cases=use_cases or None,
@@ -273,7 +290,7 @@ class DocxTableConverter:
                 )
 
     # see above boolean_outcome and subsequent_step_number could be ignored iff schemes of *-numbers are always the same
-    # pylint:disable=too-many-locals
+    # pylint:disable=too-many-locals, too-many-positional-arguments
     def _handle_single_table_star_exception(
         self,
         table: Table,
