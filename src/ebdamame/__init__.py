@@ -116,6 +116,7 @@ def get_ebd_docx_tables(docx_file_path: Path, ebd_key: str) -> List[Table]:
         raise ValueError(f"The ebd_key '{ebd_key}' does not match {_ebd_key_pattern.pattern}")
     document = get_document(docx_file_path)
 
+    found_subsection_of_requested_table: bool = False
     is_inside_subsection_of_requested_table: bool = False
     tables: List[Table] = []
     tables_and_paragraphs = _get_tables_and_paragraphs(document)
@@ -125,8 +126,14 @@ def get_ebd_docx_tables(docx_file_path: Path, ebd_key: str) -> List[Table]:
             # Assumptions:
             # 1. before each EbdTable there is a paragraph whose text starts with the respective EBD key
             # 2. there are no duplicates
+            is_ebd_heading_of_requested_ebd_key = paragraph.text.startswith(ebd_key)
+            if _ebd_key_with_heading_pattern.match(paragraph.text) is not None and found_subsection_of_requested_table:
+                _logger.warning("No EBD table found in subsection for: '%s'", ebd_key)
+                break
+            if is_ebd_heading_of_requested_ebd_key:
+                found_subsection_of_requested_table = True
             is_inside_subsection_of_requested_table = (
-                paragraph.text.startswith(ebd_key) or is_inside_subsection_of_requested_table
+                is_ebd_heading_of_requested_ebd_key or is_inside_subsection_of_requested_table
             )
             if (
                 is_inside_subsection_of_requested_table
