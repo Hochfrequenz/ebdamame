@@ -20,7 +20,7 @@ def get_document(datafiles, filename: str) -> DocumentType:
     return ebdamame.get_document(path)
 
 
-def get_ebd_docx_tables(datafiles, filename: str, ebd_key: str) -> List[Table]:
+def get_ebd_docx_tables(datafiles, filename: str, ebd_key: str) -> List[Table] | str:
     """
     a datafiles compatible wrapper around ebdamame.get_ebd_docx_tables
     """

@@ -92,20 +92,32 @@ class TestEbdamame:
 
     @pytest.mark.datafiles("unittests/test_data/ebd20221128.docx")
     @pytest.mark.parametrize(
-        "filename, ebd_key,expected_number_of_tables",
+        "filename, ebd_key,expected_number_of_tables, empty_ebd_str",
         [
-            pytest.param("ebd20221128.docx", "E_0003", 1, id="E_0003: One table on only one page"),
-            pytest.param("ebd20221128.docx", "E_0015", 1, id="E_0015: one table spanning multiple pages"),
-            pytest.param("ebd20221128.docx", "E_0901", 2, id="E_0901: multiple tables on multiple pages"),
+            pytest.param("ebd20221128.docx", "E_0003", 1, "", id="E_0003: One table on only one page"),
+            pytest.param("ebd20221128.docx", "E_0015", 1, "", id="E_0015: one table spanning multiple pages"),
+            pytest.param("ebd20221128.docx", "E_0901", 2, "", id="E_0901: multiple tables on multiple pages"),
+            pytest.param(
+                "ebd20221128.docx",
+                "E_0402",
+                0,
+                "Derzeit ist für diese Entscheidung kein Entscheidungsbaum notwendig, da keine Antwort gegeben wird. Der Netzbetreiber muss prüfen, ob eine Abmeldeanfrage zu senden ist.",
+                id="E_0402: no table",
+            ),
             # pytest.param("ebd20221128.docx", "E_0461"), # https://github.com/Hochfrequenz/ebd_docx_to_table/issues/6
         ],
     )
-    def test_get_ebd_docx_table(self, datafiles, filename: str, ebd_key: str, expected_number_of_tables: int):
+    def test_get_ebd_docx_table(
+        self, datafiles, filename: str, ebd_key: str, expected_number_of_tables: int, empty_ebd_str: str
+    ):
         actual = get_ebd_docx_tables(datafiles, filename, ebd_key=ebd_key)
         assert actual is not None
-        assert len(actual) == expected_number_of_tables
-        for table in actual:
-            assert isinstance(table, Table)
+        if isinstance(actual, str):
+            assert actual == empty_ebd_str
+        else:
+            assert len(actual) == expected_number_of_tables
+            for table in actual:
+                assert isinstance(table, Table)
 
     @pytest.mark.datafiles("unittests/test_data/ebd20230629_v34.docx")
     @pytest.mark.parametrize(
