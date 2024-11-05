@@ -293,7 +293,11 @@ class TestEbdamame:
                     docx_tables = get_ebd_docx_tables(datafiles, filename, ebd_key=ebd_key)
                     if isinstance(docx_tables, str):
                         actual_meta_data = EbdTableMetaData(
-                            ebd_code=ebd_key, chapter="Dummy Chapter", sub_chapter="Dummy Subchapter", role=docx_tables
+                            ebd_code=ebd_key,
+                            chapter="Dummy Chapter",
+                            sub_chapter="Dummy Subchapter",
+                            role="Dummy",
+                            remark=docx_tables,
                         )
                         # need to adapt EbdTableMetaData
                         assert actual_meta_data == snapshot(name=ebd_key)
