@@ -138,7 +138,7 @@ def get_ebd_docx_tables(docx_file_path: Path, ebd_key: str) -> List[Table] | Ebd
         raise ValueError(f"The ebd_key '{ebd_key}' does not match {_ebd_key_pattern.pattern}")
     document = get_document(docx_file_path)
 
-    empty_ebd_text: str = ""  # text if there is no ebd table
+    empty_ebd_text: str | None = None  # paragraph text if there is no ebd table
     found_subsection_of_requested_table: bool = False
     is_inside_subsection_of_requested_table: bool = False
     tables: List[Table] = []
@@ -199,7 +199,7 @@ def get_ebd_docx_tables(docx_file_path: Path, ebd_key: str) -> List[Table] | Ebd
             # break the outer loop, too; no need to iterate any further
             break
     if not any(tables):
-        if empty_ebd_text != "":
+        if empty_ebd_text is not None:
             return EbdNoTableSection(ebd_key=ebd_key, remark=empty_ebd_text)
         raise TableNotFoundError(ebd_key=ebd_key)
     return tables
