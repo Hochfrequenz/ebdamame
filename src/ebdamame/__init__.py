@@ -115,11 +115,15 @@ class EbdNoTableSection:
 
 
 # pylint:disable=too-many-branches
-def is_heading(paragraph):
+def is_heading(paragraph: Paragraph) -> bool:
     """
     Returns True if the paragraph is a heading.
     """
-    return paragraph.style.style_id in {"berschrift1", "berschrift2", "berschrift3"}
+    return paragraph.style is not None and paragraph.style.style_id in {
+        "berschrift1",
+        "berschrift2",
+        "berschrift3",
+    }
 
 
 def get_ebd_docx_tables(docx_file_path: Path, ebd_key: str) -> List[Table] | EbdNoTableSection:
@@ -219,10 +223,8 @@ def get_ebd_docx_tables(docx_file_path: Path, ebd_key: str) -> List[Table] | Ebd
             if found_table_in_subsection:
                 # probably there is an error while scraping the tables
                 raise TableNotFoundError(ebd_key=ebd_key)
-            else:
-                return EbdNoTableSection(ebd_key=ebd_key, remark="")
-        else:
-            return EbdNoTableSection(ebd_key=ebd_key, remark=empty_ebd_text.strip())
+            return EbdNoTableSection(ebd_key=ebd_key, remark="")
+        return EbdNoTableSection(ebd_key=ebd_key, remark=empty_ebd_text.strip())
     return tables
 
 
