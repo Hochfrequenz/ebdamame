@@ -4,7 +4,7 @@ import pytest  # type:ignore[import]
 from docx.table import Table
 from rebdhuhn.models.ebd_table import EbdTable, EbdTableMetaData
 
-from ebdamame import EbdChapterInformation, TableNotFoundError
+from ebdamame import EbdChapterInformation, EbdNoTableSection, TableNotFoundError
 from ebdamame.docxtableconverter import DocxTableConverter
 
 from . import get_all_ebd_keys, get_document, get_ebd_docx_tables
@@ -112,8 +112,8 @@ class TestEbdamame:
     ):
         actual = get_ebd_docx_tables(datafiles, filename, ebd_key=ebd_key)
         assert actual is not None
-        if isinstance(actual, str):
-            assert actual == empty_ebd_str
+        if isinstance(actual, EbdNoTableSection):
+            assert actual.remark == empty_ebd_str
         else:
             assert len(actual) == expected_number_of_tables
             for table in actual:
@@ -128,7 +128,7 @@ class TestEbdamame:
     )
     def test_finding_tables_positive(self, datafiles, filename: str, ebd_key: str):
         docx_tables = get_ebd_docx_tables(datafiles, filename, ebd_key=ebd_key)
-        assert docx_tables is not None and not isinstance(docx_tables, str)
+        assert docx_tables is not None and not isinstance(docx_tables, EbdNoTableSection)
         converter = DocxTableConverter(
             docx_tables, ebd_key=ebd_key, chapter="Dummy Chapter", sub_chapter="Dummy Subchapter"
         )
@@ -150,8 +150,8 @@ class TestEbdamame:
     )
     def test_finding_tables_negative(self, datafiles, filename: str, ebd_key: str, empty_ebd_str: str):
         if empty_ebd_str != "":
-            docx_tables = get_ebd_docx_tables(datafiles, filename, ebd_key=ebd_key)
-            assert isinstance(docx_tables, str) and docx_tables.rstrip() == empty_ebd_str
+            empty_section = get_ebd_docx_tables(datafiles, filename, ebd_key=ebd_key)
+            assert isinstance(empty_section, EbdNoTableSection) and empty_section.remark == empty_ebd_str
         else:
             with pytest.raises(TableNotFoundError):
                 docx_tables = get_ebd_docx_tables(datafiles, filename, ebd_key=ebd_key)
@@ -170,7 +170,7 @@ class TestEbdamame:
     )
     def test_wrong_encoding_of_rightarrow(self, datafiles, filename: str, ebd_key: str, excepted_subsequent: str):
         docx_tables = get_ebd_docx_tables(datafiles, filename, ebd_key=ebd_key)
-        assert docx_tables is not None and not isinstance(docx_tables, str)
+        assert docx_tables is not None and not isinstance(docx_tables, EbdNoTableSection)
         converter = DocxTableConverter(
             docx_tables, ebd_key=ebd_key, chapter="Dummy Chapter", sub_chapter="Dummy Subchapter"
         )
@@ -232,7 +232,7 @@ class TestEbdamame:
         self, datafiles, filename: str, ebd_key: str, chapter: str, sub_chapter: str, expected: EbdTable
     ):
         docx_table = get_ebd_docx_tables(datafiles, filename, ebd_key=ebd_key)
-        assert docx_table is not None and not isinstance(docx_table, str)
+        assert docx_table is not None and not isinstance(docx_table, EbdNoTableSection)
         converter = DocxTableConverter(docx_table, ebd_key=ebd_key, chapter=chapter, sub_chapter=sub_chapter)
         actual = converter.convert_docx_tables_to_ebd_table()
         assert actual == expected
@@ -291,13 +291,13 @@ class TestEbdamame:
                 issue_number: str
                 try:
                     docx_tables = get_ebd_docx_tables(datafiles, filename, ebd_key=ebd_key)
-                    if isinstance(docx_tables, str):
+                    if isinstance(docx_tables, EbdNoTableSection):
                         actual_meta_data = EbdTableMetaData(
                             ebd_code=ebd_key,
                             chapter="Dummy Chapter",
                             sub_chapter="Dummy Subchapter",
                             role="Dummy",
-                            remark=docx_tables,
+                            remark=docx_tables.remark,
                         )
                         # need to adapt EbdTableMetaData
                         assert actual_meta_data == snapshot(name=ebd_key)

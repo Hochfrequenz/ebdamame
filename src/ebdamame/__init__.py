@@ -104,8 +104,18 @@ def _table_is_an_ebd_table(table: Table) -> bool:
     return False
 
 
+@attrs.define(kw_only=True, frozen=True)
+class EbdNoTableSection:
+    """
+    Represents an empty section in the document
+    """
+
+    ebd_key: str = attrs.field(validator=attrs.validators.instance_of(str))
+    remark: str = attrs.field(validator=attrs.validators.instance_of(str))
+
+
 # pylint:disable=too-many-branches
-def get_ebd_docx_tables(docx_file_path: Path, ebd_key: str) -> List[Table] | str:
+def get_ebd_docx_tables(docx_file_path: Path, ebd_key: str) -> List[Table] | EbdNoTableSection:
     """
     Opens the file specified in docx_file_path and returns the tables that relate to the given ebd_key.
     There might be more than 1 docx table for 1 EBD table.
@@ -133,7 +143,7 @@ def get_ebd_docx_tables(docx_file_path: Path, ebd_key: str) -> List[Table] | str
                 break
             if found_subsection_of_requested_table and empty_ebd_text == "":
                 # the first text paragraph after we found the correct section containing the ebd key
-                empty_ebd_text = paragraph.text
+                empty_ebd_text = paragraph.text.rstrip()
             if is_ebd_heading_of_requested_ebd_key:
                 found_subsection_of_requested_table = True
             is_inside_subsection_of_requested_table = (
@@ -178,7 +188,7 @@ def get_ebd_docx_tables(docx_file_path: Path, ebd_key: str) -> List[Table] | str
             break
     if not any(tables):
         if empty_ebd_text != "":
-            return empty_ebd_text
+            return EbdNoTableSection(ebd_key=ebd_key, remark=empty_ebd_text)
         raise TableNotFoundError(ebd_key=ebd_key)
     return tables
 
