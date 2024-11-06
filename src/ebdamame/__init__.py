@@ -117,10 +117,22 @@ class EbdNoTableSection:
 # pylint:disable=too-many-branches
 def get_ebd_docx_tables(docx_file_path: Path, ebd_key: str) -> List[Table] | EbdNoTableSection:
     """
-    Opens the file specified in docx_file_path and returns the tables that relate to the given ebd_key.
-    There might be more than 1 docx table for 1 EBD table.
-    This is because of inconsistencies and manual editing during creation of the documents by EDI@Energy.
-    Raises an TableNotFoundError if the table was not found.
+    Opens the file specified in `docx_file_path` and returns the tables that relate to the given `ebd_key`.
+
+    This function processes the document to find tables associated with the given `ebd_key`. There might be more than one
+    table for a single EBD table due to inconsistencies and manual editing during the creation of the documents by EDI@Energy.
+    There are sections relating to the EBD key without any tables. In this case, the section is identified and the related paragraph is captured as a remark.
+
+    Args:
+        docx_file_path (Path): The path to the .docx file to be processed.
+        ebd_key (str): The EBD key to search for in the document.
+
+    Returns:
+        List[Table] | EbdNoTableSection: A list of `Table` objects if tables are found, or an `EbdNoTableSection` object
+        if no tables are found but the section is identified and are remark is captured.
+
+    Raises:
+        TableNotFoundError: If no tables related to the given `ebd_key` are found in the document.
     """
     if _ebd_key_pattern.match(ebd_key) is None:
         raise ValueError(f"The ebd_key '{ebd_key}' does not match {_ebd_key_pattern.pattern}")
