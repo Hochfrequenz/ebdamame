@@ -115,6 +115,13 @@ class EbdNoTableSection:
 
 
 # pylint:disable=too-many-branches
+def is_heading(paragraph):
+    """
+    Returns True if the paragraph is a heading.
+    """
+    return paragraph.style.style_id in {"berschrift1", "berschrift2", "berschrift3"}
+
+
 def get_ebd_docx_tables(docx_file_path: Path, ebd_key: str) -> List[Table] | EbdNoTableSection:
     """
     Opens the file specified in `docx_file_path` and returns the tables that relate to the given `ebd_key`.
@@ -142,7 +149,8 @@ def get_ebd_docx_tables(docx_file_path: Path, ebd_key: str) -> List[Table] | Ebd
     document = get_document(docx_file_path)
 
     empty_ebd_text: str | None = None  # paragraph text if there is no ebd table
-    found_subsection_of_requested_table: bool = False
+    # found_subsection_of_requested_table: bool = False
+    found_table_in_subsection: bool = False
     is_inside_subsection_of_requested_table: bool = False
     tables: List[Table] = []
     tables_and_paragraphs = _get_tables_and_paragraphs(document)
@@ -153,24 +161,29 @@ def get_ebd_docx_tables(docx_file_path: Path, ebd_key: str) -> List[Table] | Ebd
             # 1. before each EbdTable there is a paragraph whose text starts with the respective EBD key
             # 2. there are no duplicates
             is_ebd_heading_of_requested_ebd_key = paragraph.text.startswith(ebd_key)
-            if _ebd_key_with_heading_pattern.match(paragraph.text) is not None and found_subsection_of_requested_table:
+            if is_inside_subsection_of_requested_table and is_heading(paragraph):
                 _logger.warning("No EBD table found in subsection for: '%s'", ebd_key)
                 break
-            if found_subsection_of_requested_table and empty_ebd_text is None:
-                # the first text paragraph after we found the correct section containing the ebd key
-                empty_ebd_text = paragraph.text.rstrip()
-            if is_ebd_heading_of_requested_ebd_key:
-                found_subsection_of_requested_table = True
+            if is_inside_subsection_of_requested_table and paragraph.text.strip() != "":
+                if empty_ebd_text is None:
+                    # the first text paragraph after we found the correct section containing the ebd key
+                    empty_ebd_text = paragraph.text.strip()
+                else:
+                    empty_ebd_text += ("\n") + paragraph.text.strip()
+            # if is_ebd_heading_of_requested_ebd_key:
+            #    is_inside_subsection_of_requested_table = True
             is_inside_subsection_of_requested_table = (
                 is_ebd_heading_of_requested_ebd_key or is_inside_subsection_of_requested_table
             )
-            if (
-                is_inside_subsection_of_requested_table
-                and paragraph.text.strip().startswith("Es ist das EBD")
-                and paragraph.text.strip().endswith("zu nutzen.")
-            ):
-                # that's kind of a dirty hack. But it works.
-                break
+            # if (
+            #    is_inside_subsection_of_requested_table
+            #    and paragraph.text.strip().startswith("Es ist das EBD")
+            #    and paragraph.text.strip().endswith("zu nutzen.")
+            # ):
+            #    # that's kind of a dirty hack. But it works.
+            #    break
+        if isinstance(table_or_paragraph, Table) and is_inside_subsection_of_requested_table:
+            found_table_in_subsection = True
         if (
             isinstance(table_or_paragraph, Table)
             and is_inside_subsection_of_requested_table
@@ -202,9 +215,14 @@ def get_ebd_docx_tables(docx_file_path: Path, ebd_key: str) -> List[Table] | Ebd
             # break the outer loop, too; no need to iterate any further
             break
     if not any(tables):
-        if empty_ebd_text is not None:
-            return EbdNoTableSection(ebd_key=ebd_key, remark=empty_ebd_text)
-        raise TableNotFoundError(ebd_key=ebd_key)
+        if empty_ebd_text is None:
+            if found_table_in_subsection:
+                # probably there is an error while scraping the tables
+                raise TableNotFoundError(ebd_key=ebd_key)
+            else:
+                return EbdNoTableSection(ebd_key=ebd_key, remark="")
+        else:
+            return EbdNoTableSection(ebd_key=ebd_key, remark=empty_ebd_text.strip())
     return tables
 
 
