@@ -219,6 +219,8 @@ def get_ebd_docx_tables(docx_file_path: Path, ebd_key: str) -> List[Table] | Ebd
             # break the outer loop, too; no need to iterate any further
             break
     if not any(tables):
+        if not is_inside_subsection_of_requested_table:
+            raise TableNotFoundError(ebd_key=ebd_key)
         if empty_ebd_text is None:
             if found_table_in_subsection:
                 # probably there is an error while scraping the tables
