@@ -119,9 +119,12 @@ def get_ebd_docx_tables(docx_file_path: Path, ebd_key: str) -> List[Table] | Ebd
     """
     Opens the file specified in `docx_file_path` and returns the tables that relate to the given `ebd_key`.
 
-    This function processes the document to find tables associated with the given `ebd_key`. There might be more than one
-    table for a single EBD table due to inconsistencies and manual editing during the creation of the documents by EDI@Energy.
-    There are sections relating to the EBD key without any tables. In this case, the section is identified and the related paragraph is captured as a remark.
+    This function processes the document to find tables associated with the given `ebd_key`.
+    There might be more than one table for a single EBD table due to inconsistencies and manual editing during
+    the creation of the documents by EDI@Energy.
+    There are sections relating to the EBD key without any tables.
+    In this case, the section is identified and the related paragraph is captured as a remark
+    (e.g. 'Es ist das EBD E_0556 zu nutzen.' for EBD_0561).
 
     Args:
         docx_file_path (Path): The path to the .docx file to be processed.
