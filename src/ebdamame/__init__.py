@@ -156,7 +156,7 @@ def get_ebd_docx_tables(docx_file_path: Path, ebd_key: str) -> List[Table] | Ebd
             if _ebd_key_with_heading_pattern.match(paragraph.text) is not None and found_subsection_of_requested_table:
                 _logger.warning("No EBD table found in subsection for: '%s'", ebd_key)
                 break
-            if found_subsection_of_requested_table and empty_ebd_text == "":
+            if found_subsection_of_requested_table and empty_ebd_text is None:
                 # the first text paragraph after we found the correct section containing the ebd key
                 empty_ebd_text = paragraph.text.rstrip()
             if is_ebd_heading_of_requested_ebd_key:
