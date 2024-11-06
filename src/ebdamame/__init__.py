@@ -153,7 +153,6 @@ def get_ebd_docx_tables(docx_file_path: Path, ebd_key: str) -> List[Table] | Ebd
     document = get_document(docx_file_path)
 
     empty_ebd_text: str | None = None  # paragraph text if there is no ebd table
-    # found_subsection_of_requested_table: bool = False
     found_table_in_subsection: bool = False
     is_inside_subsection_of_requested_table: bool = False
     tables: List[Table] = []
@@ -174,18 +173,9 @@ def get_ebd_docx_tables(docx_file_path: Path, ebd_key: str) -> List[Table] | Ebd
                     empty_ebd_text = paragraph.text.strip()
                 else:
                     empty_ebd_text += ("\n") + paragraph.text.strip()
-            # if is_ebd_heading_of_requested_ebd_key:
-            #    is_inside_subsection_of_requested_table = True
             is_inside_subsection_of_requested_table = (
                 is_ebd_heading_of_requested_ebd_key or is_inside_subsection_of_requested_table
             )
-            # if (
-            #    is_inside_subsection_of_requested_table
-            #    and paragraph.text.strip().startswith("Es ist das EBD")
-            #    and paragraph.text.strip().endswith("zu nutzen.")
-            # ):
-            #    # that's kind of a dirty hack. But it works.
-            #    break
         if isinstance(table_or_paragraph, Table) and is_inside_subsection_of_requested_table:
             found_table_in_subsection = True
         if (
