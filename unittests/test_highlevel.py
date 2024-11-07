@@ -129,7 +129,9 @@ class TestEbdamame:
     def test_finding_tables_positive(self, datafiles, filename: str, ebd_key: str):
         docx_tables = get_ebd_docx_tables(datafiles, filename, ebd_key=ebd_key)
         assert docx_tables is not None and not isinstance(docx_tables, EbdNoTableSection)
-        converter = DocxTableConverter(docx_tables, ebd_key=ebd_key, chapter="Dummy Chapter", section="Dummy Section")
+        converter = DocxTableConverter(
+            docx_tables, ebd_key=ebd_key, ebd_name="Dummy EBD_Name", chapter="Dummy Chapter", section="Dummy Section"
+        )
         actual = converter.convert_docx_tables_to_ebd_table()  # must not throw TableNotFoundError
         assert isinstance(actual, EbdTable)
 
@@ -153,7 +155,9 @@ class TestEbdamame:
         else:
             with pytest.raises(TableNotFoundError):
                 docx_tables = get_ebd_docx_tables(datafiles, filename, ebd_key=ebd_key)
-                converter = DocxTableConverter([], ebd_key=ebd_key, chapter="Dummy Chapter", section="Dummy Section")
+                converter = DocxTableConverter(
+                    [], ebd_key=ebd_key, ebd_name="Dummy EBD_Name", chapter="Dummy Chapter", section="Dummy Section"
+                )
                 _ = converter.convert_docx_tables_to_ebd_table()
 
     @pytest.mark.datafiles("unittests/test_data/ebd20230619_v34.docx")
@@ -167,7 +171,9 @@ class TestEbdamame:
     def test_wrong_encoding_of_rightarrow(self, datafiles, filename: str, ebd_key: str, excepted_subsequent: str):
         docx_tables = get_ebd_docx_tables(datafiles, filename, ebd_key=ebd_key)
         assert docx_tables is not None and not isinstance(docx_tables, EbdNoTableSection)
-        converter = DocxTableConverter(docx_tables, ebd_key=ebd_key, chapter="Dummy Chapter", section="Dummy Section")
+        converter = DocxTableConverter(
+            docx_tables, ebd_key=ebd_key, ebd_name="Dummy EBD_Name", chapter="Dummy Chapter", section="Dummy Section"
+        )
         actual = converter.convert_docx_tables_to_ebd_table()
         assert any(
             subrow
@@ -227,7 +233,9 @@ class TestEbdamame:
     ):
         docx_table = get_ebd_docx_tables(datafiles, filename, ebd_key=ebd_key)
         assert docx_table is not None and not isinstance(docx_table, EbdNoTableSection)
-        converter = DocxTableConverter(docx_table, ebd_key=ebd_key, chapter=chapter, section=section)
+        converter = DocxTableConverter(
+            docx_table, ebd_key=ebd_key, ebd_name="Dummy EBD_Name", chapter=chapter, section=section
+        )
         actual = converter.convert_docx_tables_to_ebd_table()
         assert actual == expected
 
@@ -288,6 +296,7 @@ class TestEbdamame:
                     if isinstance(docx_tables, EbdNoTableSection):
                         actual_meta_data = EbdTableMetaData(
                             ebd_code=ebd_key,
+                            ebd_name="Dummy EBD_Name",
                             chapter="Dummy Chapter",
                             section="Dummy Section",
                             role="Dummy",
@@ -297,7 +306,11 @@ class TestEbdamame:
                         assert actual_meta_data == snapshot(name=ebd_key)
                     else:
                         converter = DocxTableConverter(
-                            docx_tables, ebd_key=ebd_key, chapter="Dummy Chapter", section="Dummy Subchapter"
+                            docx_tables,
+                            ebd_key=ebd_key,
+                            ebd_name="Dummy EBD_Name",
+                            chapter="Dummy Chapter",
+                            section="Dummy Subchapter",
                         )
                         actual = converter.convert_docx_tables_to_ebd_table()
                         assert isinstance(actual, EbdTable)
