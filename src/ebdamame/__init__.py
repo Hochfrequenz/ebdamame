@@ -104,19 +104,56 @@ def _table_is_an_ebd_table(table: Table) -> bool:
     return False
 
 
-# pylint:disable=too-many-branches
-def get_ebd_docx_tables(docx_file_path: Path, ebd_key: str) -> List[Table]:
+@attrs.define(kw_only=True, frozen=True)
+class EbdNoTableSection:
     """
-    Opens the file specified in docx_file_path and returns the tables that relate to the given ebd_key.
-    There might be more than 1 docx table for 1 EBD table.
-    This is because of inconsistencies and manual editing during creation of the documents by EDI@Energy.
-    Raises an TableNotFoundError if the table was not found.
+    Represents an empty section in the document
+    """
+
+    ebd_key: str = attrs.field(validator=attrs.validators.instance_of(str))
+    remark: str = attrs.field(validator=attrs.validators.instance_of(str))
+
+
+# pylint:disable=too-many-branches
+def is_heading(paragraph: Paragraph) -> bool:
+    """
+    Returns True if the paragraph is a heading.
+    """
+    return paragraph.style is not None and paragraph.style.style_id in {
+        "berschrift1",
+        "berschrift2",
+        "berschrift3",
+    }
+
+
+def get_ebd_docx_tables(docx_file_path: Path, ebd_key: str) -> List[Table] | EbdNoTableSection:
+    """
+    Opens the file specified in `docx_file_path` and returns the tables that relate to the given `ebd_key`.
+
+    This function processes the document to find tables associated with the given `ebd_key`.
+    There might be more than one table for a single EBD table due to inconsistencies and manual editing during
+    the creation of the documents by EDI@Energy.
+    There are sections relating to the EBD key without any tables.
+    In this case, the section is identified and the related paragraph is captured as a remark
+    (e.g. 'Es ist das EBD E_0556 zu nutzen.' for EBD_0561).
+
+    Args:
+        docx_file_path (Path): The path to the .docx file to be processed.
+        ebd_key (str): The EBD key to search for in the document.
+
+    Returns:
+        List[Table] | EbdNoTableSection: A list of `Table` objects if tables are found, or an `EbdNoTableSection` object
+        if no tables are found but the section is identified and are remark is captured.
+
+    Raises:
+        TableNotFoundError: If no tables related to the given `ebd_key` are found in the document.
     """
     if _ebd_key_pattern.match(ebd_key) is None:
         raise ValueError(f"The ebd_key '{ebd_key}' does not match {_ebd_key_pattern.pattern}")
     document = get_document(docx_file_path)
 
-    found_subsection_of_requested_table: bool = False
+    empty_ebd_text: str | None = None  # paragraph text if there is no ebd table
+    found_table_in_subsection: bool = False
     is_inside_subsection_of_requested_table: bool = False
     tables: List[Table] = []
     tables_and_paragraphs = _get_tables_and_paragraphs(document)
@@ -127,21 +164,20 @@ def get_ebd_docx_tables(docx_file_path: Path, ebd_key: str) -> List[Table]:
             # 1. before each EbdTable there is a paragraph whose text starts with the respective EBD key
             # 2. there are no duplicates
             is_ebd_heading_of_requested_ebd_key = paragraph.text.startswith(ebd_key)
-            if _ebd_key_with_heading_pattern.match(paragraph.text) is not None and found_subsection_of_requested_table:
+            if is_inside_subsection_of_requested_table and is_heading(paragraph):
                 _logger.warning("No EBD table found in subsection for: '%s'", ebd_key)
                 break
-            if is_ebd_heading_of_requested_ebd_key:
-                found_subsection_of_requested_table = True
+            if is_inside_subsection_of_requested_table and paragraph.text.strip() != "":
+                if empty_ebd_text is None:
+                    # the first text paragraph after we found the correct section containing the ebd key
+                    empty_ebd_text = paragraph.text.strip()
+                else:
+                    empty_ebd_text += ("\n") + paragraph.text.strip()
             is_inside_subsection_of_requested_table = (
                 is_ebd_heading_of_requested_ebd_key or is_inside_subsection_of_requested_table
             )
-            if (
-                is_inside_subsection_of_requested_table
-                and paragraph.text.strip().startswith("Es ist das EBD")
-                and paragraph.text.strip().endswith("zu nutzen.")
-            ):
-                # that's kind of a dirty hack. But it works.
-                break
+        if isinstance(table_or_paragraph, Table) and is_inside_subsection_of_requested_table:
+            found_table_in_subsection = True
         if (
             isinstance(table_or_paragraph, Table)
             and is_inside_subsection_of_requested_table
@@ -173,7 +209,14 @@ def get_ebd_docx_tables(docx_file_path: Path, ebd_key: str) -> List[Table]:
             # break the outer loop, too; no need to iterate any further
             break
     if not any(tables):
-        raise TableNotFoundError(ebd_key=ebd_key)
+        if not is_inside_subsection_of_requested_table:
+            raise TableNotFoundError(ebd_key=ebd_key)
+        if empty_ebd_text is None:
+            if found_table_in_subsection:
+                # probably there is an error while scraping the tables
+                raise TableNotFoundError(ebd_key=ebd_key)
+            return EbdNoTableSection(ebd_key=ebd_key, remark="")
+        return EbdNoTableSection(ebd_key=ebd_key, remark=empty_ebd_text.strip())
     return tables
 
 
