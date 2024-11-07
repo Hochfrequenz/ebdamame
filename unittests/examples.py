@@ -17,7 +17,7 @@ table_e0003 = EbdTable(
     metadata=EbdTableMetaData(
         ebd_code="E_0003",
         chapter="7.39 AD: Bestellung der Aggregationsebene der Bilanzkreissummenzeitreihe auf Ebene der Regelzone",
-        sub_chapter="7.39.1 E_0003_Bestellung der Aggregationsebene RZ prüfen",
+        section="7.39.1 E_0003_Bestellung der Aggregationsebene RZ prüfen",
         role="ÜNB",
     ),
     rows=[
@@ -61,7 +61,7 @@ table_e0097 = EbdTable(
     metadata=EbdTableMetaData(
         ebd_code="E_0097",
         chapter="7.56 AD: Austausch der Lieferantenausfallarbeitsclearingliste (Einzelanforderung)",
-        sub_chapter="7.56.1 E_0097_Marktlokationen mit LF-AACL abgleichen",
+        section="7.56.1 E_0097_Marktlokationen mit LF-AACL abgleichen",
         role="LF",
     ),
     rows=[
@@ -213,7 +213,7 @@ table_e0901 = EbdTable(
     metadata=EbdTableMetaData(
         ebd_code="E_0901",
         chapter="16.1 AD: Ermittlung und Abstimmung der abrechnungsrelevanten Ausfallarbeit – Prognosemodell",
-        sub_chapter="16.1.2 E_0901_Gegenvorschlag prüfen",
+        section="16.1.2 E_0901_Gegenvorschlag prüfen",
         role="NB",
     ),
     rows=[
@@ -287,7 +287,7 @@ table_e0453 = EbdTable(
     metadata=EbdTableMetaData(
         ebd_code="E_0453",
         chapter="6.18 AD: Stammdatensynchronisation",
-        sub_chapter="6.18.1 E_0453_Änderung prüfen",
+        section="6.18.1 E_0453_Änderung prüfen",
         role="ÜNB",
     ),
     rows=[
@@ -701,7 +701,7 @@ table_e0462 = EbdTable(
     metadata=EbdTableMetaData(
         ebd_code="E_0462",
         chapter="6.4 AD: Lieferbeginn",
-        sub_chapter="6.4.1 E_0462_Prüfen, ob Anmeldung direkt ablehnbar",
+        section="6.4.1 E_0462_Prüfen, ob Anmeldung direkt ablehnbar",
         role="NB",
     ),
     rows=[

@@ -51,7 +51,7 @@ converter = DocxTableConverter(
     docx_tables,
     ebd_key="E_0003",
     chapter="MaBiS",
-    sub_chapter="7.42.1: AD: Bestellung der Aggregationsebene der Bilanzkreissummenzeitreihe auf Ebene der Regelzone",
+    section="7.42.1: AD: Bestellung der Aggregationsebene der Bilanzkreissummenzeitreihe auf Ebene der Regelzone",
 )
 result = converter.convert_docx_tables_to_ebd_table()
 with open(Path("E_0003.json"), "w+", encoding="utf-8") as result_file:

@@ -150,7 +150,7 @@ class DocxTableConverter:
     converts docx tables to EbdTables
     """
 
-    def __init__(self, docx_tables: List[Table], ebd_key: str, chapter: str, sub_chapter: str):
+    def __init__(self, docx_tables: List[Table], ebd_key: str, chapter: str, section: str):
         """
         the constructor initializes the instance and reads some metadata from the (first) table header
         """
@@ -193,7 +193,7 @@ class DocxTableConverter:
                     self._column_index_note = column_index
         # if not self._column_index_step_number:
         # self._column_index_step_number = 0
-        self._metadata = EbdTableMetaData(ebd_code=ebd_key, sub_chapter=sub_chapter, chapter=chapter, role=role)
+        self._metadata = EbdTableMetaData(ebd_code=ebd_key, section=section, chapter=chapter, role=role)
 
     @staticmethod
     def _enhance_list_view(table: Table, row_offset: int) -> List[_EnhancedDocxTableLine]:
