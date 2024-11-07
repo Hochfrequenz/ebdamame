@@ -192,7 +192,7 @@ class TestEbdamame:
 
     @pytest.mark.datafiles("unittests/test_data/ebd20221128.docx")
     @pytest.mark.parametrize(
-        "filename, ebd_key, chapter, ss, ebd_name, section, expected",
+        "filename, ebd_key, chapter, _, ebd_name, section, expected",
         [
             pytest.param(
                 "ebd20221128.docx",
@@ -252,7 +252,7 @@ class TestEbdamame:
         filename: str,
         ebd_key: str,
         chapter: str,
-        ss: str,
+        _: str,
         ebd_name: str,
         section: str,
         expected: EbdTable,
