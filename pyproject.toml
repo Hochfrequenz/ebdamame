@@ -15,6 +15,7 @@ classifiers = [
     "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
 ]
 dependencies = [
     "rebdhuhn>=0.5.0",
@@ -60,6 +61,7 @@ Homepage = "https://github.com/Hochfrequenz/ebdamame"
 
 [tool.black]
 line-length = 120
+target_version = ["py311", "py312", "py313"]
 
 [tool.isort]
 line_length = 120
