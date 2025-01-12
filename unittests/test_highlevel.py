@@ -2,9 +2,10 @@ from typing import Callable, List, Tuple
 
 import pytest  # type:ignore[import]
 from docx.table import Table
-from rebdhuhn.models.ebd_table import EbdTable, EbdTableRow
+from rebdhuhn.models.ebd_table import EbdTable, EbdTableMetaData, EbdTableRow
 
-from ebdamame import EbdChapterInformation, TableNotFoundError
+
+from ebdamame import EbdChapterInformation, EbdNoTableSection, TableNotFoundError
 from ebdamame.docxtableconverter import DocxTableConverter
 
 from . import get_all_ebd_keys, get_document, get_ebd_docx_tables
@@ -98,20 +99,32 @@ class TestEbdamame:
 
     @pytest.mark.datafiles("unittests/test_data/ebd20221128.docx")
     @pytest.mark.parametrize(
-        "filename, ebd_key,expected_number_of_tables",
+        "filename, ebd_key,expected_number_of_tables, empty_ebd_str",
         [
-            pytest.param("ebd20221128.docx", "E_0003", 1, id="E_0003: One table on only one page"),
-            pytest.param("ebd20221128.docx", "E_0015", 1, id="E_0015: one table spanning multiple pages"),
-            pytest.param("ebd20221128.docx", "E_0901", 2, id="E_0901: multiple tables on multiple pages"),
+            pytest.param("ebd20221128.docx", "E_0003", 1, "", id="E_0003: One table on only one page"),
+            pytest.param("ebd20221128.docx", "E_0015", 1, "", id="E_0015: one table spanning multiple pages"),
+            pytest.param("ebd20221128.docx", "E_0901", 2, "", id="E_0901: multiple tables on multiple pages"),
+            pytest.param(
+                "ebd20221128.docx",
+                "E_0402",
+                0,
+                "Derzeit ist für diese Entscheidung kein Entscheidungsbaum notwendig, da keine Antwort gegeben wird. Der Netzbetreiber muss prüfen, ob eine Abmeldeanfrage zu senden ist.",
+                id="E_0402: no table",
+            ),
             # pytest.param("ebd20221128.docx", "E_0461"), # https://github.com/Hochfrequenz/ebd_docx_to_table/issues/6
         ],
     )
-    def test_get_ebd_docx_table(self, datafiles, filename: str, ebd_key: str, expected_number_of_tables: int):
+    def test_get_ebd_docx_table(
+        self, datafiles, filename: str, ebd_key: str, expected_number_of_tables: int, empty_ebd_str: str
+    ):
         actual = get_ebd_docx_tables(datafiles, filename, ebd_key=ebd_key)
         assert actual is not None
-        assert len(actual) == expected_number_of_tables
-        for table in actual:
-            assert isinstance(table, Table)
+        if isinstance(actual, EbdNoTableSection):
+            assert actual.remark == empty_ebd_str
+        else:
+            assert len(actual) == expected_number_of_tables
+            for table in actual:
+                assert isinstance(table, Table)
 
     @pytest.mark.datafiles("unittests/test_data/ebd20240327_v35.docx")
     @pytest.mark.parametrize(
@@ -157,26 +170,45 @@ class TestEbdamame:
     )
     def test_finding_tables_positive(self, datafiles, filename: str, ebd_key: str):
         docx_tables = get_ebd_docx_tables(datafiles, filename, ebd_key=ebd_key)
+        assert docx_tables is not None and not isinstance(docx_tables, EbdNoTableSection)
         converter = DocxTableConverter(
-            docx_tables, ebd_key=ebd_key, chapter="Dummy Chapter", sub_chapter="Dummy Subchapter"
+            docx_tables,
+            ebd_key=ebd_key,
+            chapter="Dummy Chapter",
+            section="Dummy Section",
+            ebd_name=f"{ebd_key} Dummy name",
         )
         actual = converter.convert_docx_tables_to_ebd_table()  # must not throw TableNotFoundError
         assert isinstance(actual, EbdTable)
 
     @pytest.mark.datafiles("unittests/test_data/ebd20230629_v34.docx")
     @pytest.mark.parametrize(
-        "filename, ebd_key",
+        "filename, ebd_key, empty_ebd_str",
         [
-            pytest.param("ebd20230629_v34.docx", "E_0561", id="Es ist das EBD E_0556 zu nutzen."),
+            pytest.param(
+                "ebd20230629_v34.docx",
+                "E_0561",
+                "Es ist das EBD E_0556 zu nutzen.",
+                id="Es ist das EBD E_0556 zu nutzen.",
+            ),
+            pytest.param("ebd20230629_v34.docx", "E_9999", "", id="Table does not exist"),
         ],
     )
-    def test_finding_tables_negative(self, datafiles, filename: str, ebd_key: str):
-        with pytest.raises(TableNotFoundError):
-            docx_tables = get_ebd_docx_tables(datafiles, filename, ebd_key=ebd_key)
-            converter = DocxTableConverter(
-                docx_tables, ebd_key=ebd_key, chapter="Dummy Chapter", sub_chapter="Dummy Subchapter"
-            )
-            _ = converter.convert_docx_tables_to_ebd_table()
+    def test_finding_tables_negative(self, datafiles, filename: str, ebd_key: str, empty_ebd_str: str):
+        if empty_ebd_str != "":
+            empty_section = get_ebd_docx_tables(datafiles, filename, ebd_key=ebd_key)
+            assert isinstance(empty_section, EbdNoTableSection) and empty_section.remark == empty_ebd_str
+        else:
+            with pytest.raises(TableNotFoundError):
+                docx_tables = get_ebd_docx_tables(datafiles, filename, ebd_key=ebd_key)
+                converter = DocxTableConverter(
+                    [],
+                    ebd_key=ebd_key,
+                    chapter="Dummy Chapter",
+                    ebd_name=f"{ebd_key} Dummy Name",
+                    section="Dummy Section",
+                )
+                _ = converter.convert_docx_tables_to_ebd_table()
 
     @pytest.mark.datafiles("unittests/test_data/ebd20230619_v34.docx")
     @pytest.mark.datafiles("unittests/test_data/ebd20240327_v35.docx")
@@ -189,8 +221,9 @@ class TestEbdamame:
     )
     def test_wrong_encoding_of_rightarrow(self, datafiles, filename: str, ebd_key: str, excepted_subsequent: str):
         docx_tables = get_ebd_docx_tables(datafiles, filename, ebd_key=ebd_key)
+        assert docx_tables is not None and not isinstance(docx_tables, EbdNoTableSection)
         converter = DocxTableConverter(
-            docx_tables, ebd_key=ebd_key, chapter="Dummy Chapter", sub_chapter="Dummy Subchapter"
+            docx_tables, ebd_key=ebd_key, chapter="Dummy Chapter", ebd_name="Dummy EBD Name", section="Dummy Section"
         )
         actual = converter.convert_docx_tables_to_ebd_table()
         assert any(
@@ -202,12 +235,14 @@ class TestEbdamame:
 
     @pytest.mark.datafiles("unittests/test_data/ebd20221128.docx")
     @pytest.mark.parametrize(
-        "filename, ebd_key, chapter, sub_chapter, expected",
+        "filename, ebd_key, chapter, _, ebd_name, section, expected",
         [
             pytest.param(
                 "ebd20221128.docx",
                 "E_0003",
+                "GPKE",
                 "7.39 AD: Bestellung der Aggregationsebene der Bilanzkreissummenzeitreihe auf Ebene der Regelzone",
+                "E_0003_Bestellung der Aggregationsebene RZ prüfen",
                 "7.39.1 E_0003_Bestellung der Aggregationsebene RZ prüfen",
                 table_e0003,
                 id="E_0003: Simple single page table",
@@ -215,7 +250,9 @@ class TestEbdamame:
             pytest.param(
                 "ebd20221128.docx",
                 "E_0901",
+                "GPKE",
                 "16.1 AD: Ermittlung und Abstimmung der abrechnungsrelevanten Ausfallarbeit – Prognosemodell",
+                "E_0901_Gegenvorschlag prüfen",
                 "16.1.2 E_0901_Gegenvorschlag prüfen",
                 table_e0901,
                 id="E_0901: table that span over two pages",
@@ -223,7 +260,9 @@ class TestEbdamame:
             pytest.param(
                 "ebd20221128.docx",
                 "E_0453",
+                "GPKE",
                 "6.18 AD: Stammdatensynchronisation",
+                "E_0453_Änderung prüfen",
                 "6.18.1 E_0453_Änderung prüfen",
                 table_e0453,
                 id="E_0453 with a multi-column mid table",
@@ -231,7 +270,9 @@ class TestEbdamame:
             pytest.param(
                 "ebd20221128.docx",
                 "E_0462",
+                "GPKE",
                 "6.4 AD: Lieferbeginn",
+                "E_0462_Prüfen, ob Anmeldung direkt ablehnbar",
                 "6.4.1 E_0462_Prüfen, ob Anmeldung direkt ablehnbar",
                 table_e0462,
                 id="E_0462 with gray outer lefts",
@@ -239,7 +280,9 @@ class TestEbdamame:
             pytest.param(
                 "ebd20221128.docx",
                 "E_0097",
-                "7.56 AD: Austausch der Lieferantenausfallarbeitsclearingliste (Einzelanforderung)",
+                "GPKE",
+                "Austausch der Lieferantenausfallarbeitsclearingliste (Einzelanforderung)",
+                "E_0097_Marktlokationen mit LF-AACL abgleichen",
                 "7.56.1 E_0097_Marktlokationen mit LF-AACL abgleichen",
                 table_e0097,
                 id="E_0097 contains step numbers with *",
@@ -247,10 +290,19 @@ class TestEbdamame:
         ],
     )
     def test_convert_docx_table_to_ebd_table(
-        self, datafiles, filename: str, ebd_key: str, chapter: str, sub_chapter: str, expected: EbdTable
+        self,
+        datafiles,
+        filename: str,
+        ebd_key: str,
+        chapter: str,
+        _: str,
+        ebd_name: str,
+        section: str,
+        expected: EbdTable,
     ):
         docx_table = get_ebd_docx_tables(datafiles, filename, ebd_key=ebd_key)
-        converter = DocxTableConverter(docx_table, ebd_key=ebd_key, chapter=chapter, sub_chapter=sub_chapter)
+        assert docx_table is not None and not isinstance(docx_table, EbdNoTableSection)
+        converter = DocxTableConverter(docx_table, ebd_key=ebd_key, chapter=chapter, ebd_name=ebd_name, section=section)
         actual = converter.convert_docx_tables_to_ebd_table()
         assert actual == expected
 
@@ -308,12 +360,28 @@ class TestEbdamame:
                 issue_number: str
                 try:
                     docx_tables = get_ebd_docx_tables(datafiles, filename, ebd_key=ebd_key)
-                    converter = DocxTableConverter(
-                        docx_tables, ebd_key=ebd_key, chapter="Dummy Chapter", sub_chapter="Dummy Subchapter"
-                    )
-                    actual = converter.convert_docx_tables_to_ebd_table()
-                    assert isinstance(actual, EbdTable)
-                    assert actual == snapshot(name=ebd_key)
+                    if isinstance(docx_tables, EbdNoTableSection):
+                        actual_meta_data = EbdTableMetaData(
+                            ebd_code=ebd_key,
+                            chapter="Dummy Chapter",
+                            ebd_name="Dummy Ebd Name",
+                            section="Dummy Section",
+                            role="Dummy",
+                            remark=docx_tables.remark,
+                        )
+                        # need to adapt EbdTableMetaData
+                        assert actual_meta_data == snapshot(name=ebd_key)
+                    else:
+                        converter = DocxTableConverter(
+                            docx_tables,
+                            ebd_key=ebd_key,
+                            chapter="Dummy Chapter",
+                            ebd_name=f"{ebd_key} Dummy Name",
+                            section="Dummy Section",
+                        )
+                        actual = converter.convert_docx_tables_to_ebd_table()
+                        assert isinstance(actual, EbdTable)
+                        assert actual == snapshot(name=ebd_key)
                 # In the long run, all these catchers shall be removed.
                 except AttributeError as attribute_error:
                     if attribute_error.name == "_column_index_step_number":

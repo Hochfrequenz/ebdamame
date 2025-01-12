@@ -15,43 +15,44 @@ classifiers = [
     "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
 ]
 dependencies = [
-    "rebdhuhn>=0.2.3",
-    "python-docx",
-    "more_itertools",
-    "attrs",
-    "click"
+    "rebdhuhn>=0.8.0",
+    "python-docx>=1.1.2",
+    "more_itertools>=10.5.0",
+    "attrs>=24.3.0",
+    "click>=8.1.8"
     # add all the dependencies from requirements.in here, too
 ]
 dynamic = ["readme", "version"]
 
 [project.optional-dependencies]
 coverage = [
-    "coverage==7.6.4"
+    "coverage==7.6.10"
 ]
 formatting = [
     "black==24.10.0",
     "isort==5.13.2"
 ]
 linting = [
-    "pylint==3.3.1"
+    "pylint==3.3.3"
 ]
 spellcheck = [
     "codespell==2.3.0"
 ]
 test_packaging = [
     "build==1.2.2.post1",
-    "twine==5.1.1"
+    "twine==6.0.1"
 ]
 tests = [
-    "pytest==8.3.3",
+    "pytest==8.3.4",
     "pytest-datafiles==3.0.0",
-    "pytest-subtests==0.13.1",
-    "syrupy==4.7.2"
+    "pytest-subtests==0.14.1",
+    "syrupy==4.8.0"
 ]
 type_check = [
-    "mypy==1.13.0"
+    "mypy==1.14.1"
 ]
 
 [project.urls]
@@ -60,6 +61,7 @@ Homepage = "https://github.com/Hochfrequenz/ebdamame"
 
 [tool.black]
 line-length = 120
+target_version = ["py311", "py312", "py313"]
 
 [tool.isort]
 line_length = 120
