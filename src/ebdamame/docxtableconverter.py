@@ -44,6 +44,7 @@ def _sort_columns_in_row(docx_table_row: _Row) -> Generator[_Cell, None, None]:
 _subsequent_step_pattern = re.compile(
     r"^(?P<bool>(?:ja)|(?:nein))[\sà\uF0E0]*(?P<subsequent_step_number>(?:\d+\*?)|ende)?"
 )
+# We look for private use character (U+F0E0) to avoid encoding issues which corresponds to "->" in the docx documents.
 _step_number_pattern = re.compile(_STEP_NUMBER_REGEX)
 
 
