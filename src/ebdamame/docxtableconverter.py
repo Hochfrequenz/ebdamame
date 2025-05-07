@@ -247,7 +247,7 @@ class DocxTableConverter:
         return result
 
     # I see that there are quite a few local variables, but honestly see no reason to break it down any further.
-    # pylint:disable=too-many-arguments, too-many-positional-arguments
+    # pylint:disable=too-many-arguments, too-many-positional-arguments, too-many-locals
     def _handle_single_table(
         self,
         table: Table,
@@ -261,8 +261,22 @@ class DocxTableConverter:
         The results are written into rows, sub_rows and multi_step_instructions. Those will be modified.
         """
         use_cases: list[str] = []
+        last_row_position: Optional[_EbdSubRowPosition] = None
+        description: str = ""
+        step_number: str = ""
         for row_index, enhanced_table_row in enumerate(self._enhance_list_view(table=table, row_offset=row_offset)):
             if enhanced_table_row.sub_row_position == _EbdSubRowPosition.UPPER:
+                if len(sub_rows) == 1 and last_row_position == _EbdSubRowPosition.UPPER:
+                    row = EbdTableRow(
+                        description=description,  # pylint:disable=possibly-used-before-assignment
+                        step_number=step_number,
+                        sub_rows=sub_rows,
+                        use_cases=use_cases or None,
+                    )
+                    rows.append(row)
+                    _logger.debug("Successfully added last single row #%s ('%s')", step_number, description)
+
+                last_row_position = _EbdSubRowPosition.UPPER
                 use_cases = _get_use_cases(enhanced_table_row.cells)
                 sub_rows = []  # clear list every second entry
                 step_number = enhanced_table_row.cells[len(use_cases) + self._column_index_step_number].text.strip()
@@ -285,6 +299,7 @@ class DocxTableConverter:
             )
             sub_rows.append(sub_row)
             if enhanced_table_row.sub_row_position == _EbdSubRowPosition.LOWER:
+                last_row_position = _EbdSubRowPosition.LOWER
                 row = EbdTableRow(
                     description=description,  # pylint:disable=possibly-used-before-assignment
                     # description is defined and set at this point because the enhanced list view always starts with
@@ -295,6 +310,7 @@ class DocxTableConverter:
                 )
                 rows.append(row)
                 _logger.debug("Successfully read row #%s ('%s')", step_number, description)
+
             if enhanced_table_row.multi_step_instruction_text:
                 multi_step_instructions.append(
                     MultiStepInstruction(
