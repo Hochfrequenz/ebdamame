@@ -42,7 +42,7 @@ def _sort_columns_in_row(docx_table_row: _Row) -> Generator[_Cell, None, None]:
 
 
 _subsequent_step_pattern = re.compile(
-    r"^(?P<bool>(?:ja)|(?:nein))[\sà\uF0E0]*(?P<subsequent_step_number>(?:\d+\*?)|ende)?"
+    r"^(?P<bool>(?:ja)|(?:nein))?[\sà\uF0E0]*(?P<subsequent_step_number>(?:\d+\*?)|ende)?"
 )
 # We look for private use character (U+F0E0) to avoid encoding issues which corresponds to "->" in the docx documents.
 _step_number_pattern = re.compile(_STEP_NUMBER_REGEX)
@@ -79,23 +79,26 @@ def _get_use_cases(cells: List[_Cell]) -> List[str]:
     return use_cases  # we don't return None here because we need something that has a length in the calling code
 
 
-def _read_subsequent_step_cell(cell: _Cell) -> Tuple[bool, Optional[str]]:
+def _read_subsequent_step_cell(cell: _Cell) -> Tuple[Optional[bool], Optional[str]]:
     """
     Parses the cell that contains the outcome and the subsequent step (e.g. "ja➡5" where "5" is the subsequent step
-    number).
+    number). As a result we might also have no boolean values as there is no "ja" or "nein" pointing to the
+    subsequent step, e.g. " 110" at step "105" for E_0594 in FV2504.
     """
     cell_text = cell.text.lower().strip()
     # we first match against the lower case cell text; then we convert the "ende" to upper case again in the end.
     # this is to avoid confusion with "ja" vs. "Ja"
     match = _subsequent_step_pattern.match(cell_text)
     if not match:
-        raise ValueError(f"The cell content '{cell_text}' does not belong to a ja/nein cell")
+        raise ValueError(f"The cell content '{cell_text}' does not match a cell containing subsequent steps")
     group_dict = match.groupdict()
-    result_is_ja = group_dict["bool"] == "ja"
-    subsequent_step_number = group_dict["subsequent_step_number"]
+    result_bool = group_dict.get("bool")
+    if result_bool is not None:
+        result_bool = result_bool == "ja"
+    subsequent_step_number = group_dict.get("subsequent_step_number")
     if subsequent_step_number == "ende":
         subsequent_step_number = "Ende"
-    return result_is_ja, subsequent_step_number
+    return result_bool, subsequent_step_number
 
 
 class _EbdSubRowPosition(Enum):
@@ -144,6 +147,17 @@ class _EnhancedDocxTableLine:
     """
     a multistep instruction text that may be applicable to this row (if not None)
     """
+
+
+def _get_upper_lower_position(cells: list[_Cell]) -> _EbdSubRowPosition:
+    """
+    Takes cells of rows of list and returns the _EbdSubRowPosition:
+    The first two entries are empty -> _EbdSubRowPosition.LOWER
+    else -> _EbdSubRowPosition.UPPER
+    """
+    if all(cell.text == "" for cell in cells[0:2]):
+        return _EbdSubRowPosition.LOWER
+    return _EbdSubRowPosition.UPPER
 
 
 # pylint: disable=too-few-public-methods, too-many-instance-attributes, too-many-arguments, too-many-positional-arguments
@@ -220,6 +234,7 @@ class DocxTableConverter:
                 multi_step_instruction_text = row_cells[0].text
                 # we store the text in the local variable for now because we don't yet know the next step number
                 continue
+            sub_row_position = _get_upper_lower_position(row_cells)
             result.append(
                 _EnhancedDocxTableLine(
                     row=table_row,
@@ -232,7 +247,7 @@ class DocxTableConverter:
         return result
 
     # I see that there are quite a few local variables, but honestly see no reason to break it down any further.
-    # pylint:disable=too-many-arguments, too-many-positional-arguments
+    # pylint:disable=too-many-arguments, too-many-positional-arguments, too-many-locals
     def _handle_single_table(
         self,
         table: Table,
@@ -246,8 +261,24 @@ class DocxTableConverter:
         The results are written into rows, sub_rows and multi_step_instructions. Those will be modified.
         """
         use_cases: list[str] = []
+        last_row_position: Optional[_EbdSubRowPosition] = None
+        # todo: https://github.com/Hochfrequenz/ebdamame/issues/318 # pylint:disable=fixme
+        description: str = ""
+        step_number: str = ""
         for row_index, enhanced_table_row in enumerate(self._enhance_list_view(table=table, row_offset=row_offset)):
             if enhanced_table_row.sub_row_position == _EbdSubRowPosition.UPPER:
+                is_transition_row = len(sub_rows) == 1 and last_row_position == _EbdSubRowPosition.UPPER
+                if is_transition_row:
+                    row = EbdTableRow(
+                        description=description,  # pylint:disable=possibly-used-before-assignment
+                        step_number=step_number,
+                        sub_rows=sub_rows,
+                        use_cases=use_cases or None,
+                    )
+                    rows.append(row)
+                    _logger.debug("Successfully added last single row #%s ('%s')", step_number, description)
+
+                last_row_position = _EbdSubRowPosition.UPPER
                 use_cases = _get_use_cases(enhanced_table_row.cells)
                 sub_rows = []  # clear list every second entry
                 step_number = enhanced_table_row.cells[len(use_cases) + self._column_index_step_number].text.strip()
@@ -270,6 +301,7 @@ class DocxTableConverter:
             )
             sub_rows.append(sub_row)
             if enhanced_table_row.sub_row_position == _EbdSubRowPosition.LOWER:
+                last_row_position = _EbdSubRowPosition.LOWER
                 row = EbdTableRow(
                     description=description,  # pylint:disable=possibly-used-before-assignment
                     # description is defined and set at this point because the enhanced list view always starts with
@@ -280,6 +312,7 @@ class DocxTableConverter:
                 )
                 rows.append(row)
                 _logger.debug("Successfully read row #%s ('%s')", step_number, description)
+
             if enhanced_table_row.multi_step_instruction_text:
                 multi_step_instructions.append(
                     MultiStepInstruction(
