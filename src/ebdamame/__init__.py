@@ -104,6 +104,14 @@ def _table_is_an_ebd_table(table: Table) -> bool:
     return False
 
 
+def _table_is_first_ebd_table(table: Table) -> bool:
+    """
+    Checks if the first row of a table contains "Prüfende Rolle". We assume that each EBD table has a header row with
+    "Prüfende Rolle" in the first column.
+    """
+    return "Prüfende Rolle" in table.rows[0].cells[0].text
+
+
 @attrs.define(kw_only=True, frozen=True)
 class EbdNoTableSection:
     """
@@ -182,6 +190,7 @@ def get_ebd_docx_tables(docx_file_path: Path, ebd_key: str) -> List[Table] | Ebd
             isinstance(table_or_paragraph, Table)
             and is_inside_subsection_of_requested_table
             and _table_is_an_ebd_table(table_or_paragraph)
+            and _table_is_first_ebd_table(table_or_paragraph)
         ):
             table: Table = table_or_paragraph
             tables.append(table)
