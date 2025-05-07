@@ -149,6 +149,17 @@ class _EnhancedDocxTableLine:
     """
 
 
+def _get_upper_lower_position(cells: list[_Cell]) -> _EbdSubRowPosition:
+    """
+    Takes cells of rows of list and returns the _EbdSubRowPosition:
+    The first two entries are empty -> _EbdSubRowPosition.LOWER
+    else -> _EbdSubRowPosition.UPPER
+    """
+    if all(cell.text == "" for cell in cells[0:2]):
+        return _EbdSubRowPosition.LOWER
+    return _EbdSubRowPosition.UPPER
+
+
 # pylint: disable=too-few-public-methods, too-many-instance-attributes, too-many-arguments, too-many-positional-arguments
 class DocxTableConverter:
     """
@@ -223,6 +234,7 @@ class DocxTableConverter:
                 multi_step_instruction_text = row_cells[0].text
                 # we store the text in the local variable for now because we don't yet know the next step number
                 continue
+            sub_row_position = _get_upper_lower_position(row_cells)
             result.append(
                 _EnhancedDocxTableLine(
                     row=table_row,
