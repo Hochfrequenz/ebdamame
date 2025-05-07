@@ -836,6 +836,9 @@
 # name: TestEbdamame.test_extraction[08.10.2024 v3.5 / FV2410][E_0801]
   EbdTableMetaData(ebd_code='E_0801', chapter='Dummy Chapter', section='Dummy Section', role='Dummy', ebd_name='Dummy Ebd Name', remark='GS_002_MehrMinderMengen-Rechnung prüfen')
 # ---
+# name: TestEbdamame.test_extraction[08.10.2024 v3.5 / FV2410][E_0802]
+  EbdTableMetaData(ebd_code='E_0802', chapter='Dummy Chapter', section='Dummy Section', role='Dummy', ebd_name='Dummy Ebd Name', remark='G_0080_aggregierte Menge und Abrechnungszeitraum prüfen')
+# ---
 # name: TestEbdamame.test_extraction[08.10.2024 v3.5 / FV2410][E_0803]
   EbdTableMetaData(ebd_code='E_0803', chapter='Dummy Chapter', section='Dummy Section', role='Dummy', ebd_name='Dummy Ebd Name', remark='G_0001_ORDRSP Abl. der Anforderung')
 # ---
@@ -1702,6 +1705,9 @@
 # ---
 # name: TestEbdamame.test_extraction[08.10.2024 v3.5 / FV2504][E_0801]
   EbdTableMetaData(ebd_code='E_0801', chapter='Dummy Chapter', section='Dummy Section', role='Dummy', ebd_name='Dummy Ebd Name', remark='GS_002_MehrMinderMengen-Rechnung prüfen')
+# ---
+# name: TestEbdamame.test_extraction[08.10.2024 v3.5 / FV2504][E_0802]
+  EbdTableMetaData(ebd_code='E_0802', chapter='Dummy Chapter', section='Dummy Section', role='Dummy', ebd_name='Dummy Ebd Name', remark='G_0080_aggregierte Menge und Abrechnungszeitraum prüfen')
 # ---
 # name: TestEbdamame.test_extraction[08.10.2024 v3.5 / FV2504][E_0803]
   EbdTableMetaData(ebd_code='E_0803', chapter='Dummy Chapter', section='Dummy Section', role='Dummy', ebd_name='Dummy Ebd Name', remark='G_0001_ORDRSP Abl. der Anforderung')
@@ -2581,6 +2587,9 @@
 # ---
 # name: TestEbdamame.test_extraction[19.06.2023 v3.4 / FV2310][E_0801]
   EbdTableMetaData(ebd_code='E_0801', chapter='Dummy Chapter', section='Dummy Section', role='Dummy', ebd_name='Dummy Ebd Name', remark='GS_002_MehrMinderMengen-Rechnung prüfen\nGS_004_Ablehnung der Stornorechnung (aus Prozessschritt 5 MMMA NB an LF)\nGS_005_Ablehnung der Stornorechnung (aus Prozessschritt 7 MMMA NB an LF)')
+# ---
+# name: TestEbdamame.test_extraction[19.06.2023 v3.4 / FV2310][E_0802]
+  EbdTableMetaData(ebd_code='E_0802', chapter='Dummy Chapter', section='Dummy Section', role='Dummy', ebd_name='Dummy Ebd Name', remark='G_0080_aggregierte Menge und Abrechnungszeitraum prüfen\nG_0088_Ablehnung der Stornorechnung (MMMA NB an MGV)')
 # ---
 # name: TestEbdamame.test_extraction[19.06.2023 v3.4 / FV2310][E_0803]
   EbdTableMetaData(ebd_code='E_0803', chapter='Dummy Chapter', section='Dummy Section', role='Dummy', ebd_name='Dummy Ebd Name', remark='G_0001_ORDRSP Abl. der Anforderung')

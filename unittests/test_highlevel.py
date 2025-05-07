@@ -365,6 +365,8 @@ class TestEbdamame:
                             issue_number = "74"
                         case "No cell containing a valid step number found.":
                             issue_number = "to be added"
+                        case "The cell content 'à 110' does not belong to a ja/nein cell":
+                            issue_number = "to be added"
                         case _:
                             raise
                     error_msg = f"Error while scraping '{ebd_key}' (#{issue_number}): {value_error}"
