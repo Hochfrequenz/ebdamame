@@ -5,12 +5,12 @@ This module converts tables read from the docx file into a format that is easily
 import logging
 import re
 from enum import Enum
-from itertools import cycle, groupby
+from itertools import groupby
 from typing import Generator, List, Literal, Optional, Tuple
 
 import attrs
 from docx.table import Table, _Cell, _Row
-from more_itertools import first, first_true, last
+from more_itertools import first, first_true, last, peekable
 from rebdhuhn.models.ebd_table import (
     _STEP_NUMBER_REGEX,
     EbdCheckResult,
@@ -114,6 +114,7 @@ class _EbdSubRowPosition(Enum):
 
     UPPER = 1  #: the upper sub row
     LOWER = 2  #: the lower sub row
+    SINGLE = 0  #: a single sub row
 
 
 # pylint:disable=too-few-public-methods
@@ -220,21 +221,25 @@ class DocxTableConverter:
         It spares the main loop in _handle_single_table from peeking ahead or looking back.
         """
         result: List[_EnhancedDocxTableLine] = []
-        upper_lower_iterator = cycle([_EbdSubRowPosition.UPPER, _EbdSubRowPosition.LOWER])
+        peekable_table_rows = peekable(table.rows[row_offset:])
         multi_step_instruction_text: Optional[str] = None
-        for table_row, sub_row_position in zip(
-            table.rows[row_offset:],
-            upper_lower_iterator,
-        ):
+        for table_row in peekable_table_rows:
             row_cells = list(_sort_columns_in_row(table_row))
             if len(row_cells) <= 2:
                 # These are the multi-column rows that span that contain stuff like
                 # "Alle festgestellten Antworten sind anzugeben, soweit im Format möglich (maximal 8 Antwortcodes)*."
-                _ = next(upper_lower_iterator)  # reset the iterator
                 multi_step_instruction_text = row_cells[0].text
                 # we store the text in the local variable for now because we don't yet know the next step number
                 continue
             sub_row_position = _get_upper_lower_position(row_cells)
+            if sub_row_position == _EbdSubRowPosition.UPPER:
+                # get next position
+                next_table_row = peekable_table_rows.peek(None)
+                if (
+                    next_table_row is None
+                    or _get_upper_lower_position(list(_sort_columns_in_row(next_table_row))) == _EbdSubRowPosition.UPPER
+                ):
+                    sub_row_position = _EbdSubRowPosition.SINGLE
             result.append(
                 _EnhancedDocxTableLine(
                     row=table_row,
@@ -247,7 +252,7 @@ class DocxTableConverter:
         return result
 
     # I see that there are quite a few local variables, but honestly see no reason to break it down any further.
-    # pylint:disable=too-many-arguments, too-many-positional-arguments, too-many-locals
+    # pylint:disable=too-many-arguments, too-many-positional-arguments
     def _handle_single_table(
         self,
         table: Table,
@@ -261,22 +266,10 @@ class DocxTableConverter:
         The results are written into rows, sub_rows and multi_step_instructions. Those will be modified.
         """
         use_cases: list[str] = []
-        last_row_position: Optional[_EbdSubRowPosition] = None
         description: str = ""
         step_number: str = ""
         for row_index, enhanced_table_row in enumerate(self._enhance_list_view(table=table, row_offset=row_offset)):
             if enhanced_table_row.sub_row_position == _EbdSubRowPosition.UPPER:
-                if len(sub_rows) == 1 and last_row_position == _EbdSubRowPosition.UPPER:
-                    row = EbdTableRow(
-                        description=description,  # pylint:disable=possibly-used-before-assignment
-                        step_number=step_number,
-                        sub_rows=sub_rows,
-                        use_cases=use_cases or None,
-                    )
-                    rows.append(row)
-                    _logger.debug("Successfully added last single row #%s ('%s')", step_number, description)
-
-                last_row_position = _EbdSubRowPosition.UPPER
                 use_cases = _get_use_cases(enhanced_table_row.cells)
                 sub_rows = []  # clear list every second entry
                 step_number = enhanced_table_row.cells[len(use_cases) + self._column_index_step_number].text.strip()
@@ -299,7 +292,6 @@ class DocxTableConverter:
             )
             sub_rows.append(sub_row)
             if enhanced_table_row.sub_row_position == _EbdSubRowPosition.LOWER:
-                last_row_position = _EbdSubRowPosition.LOWER
                 row = EbdTableRow(
                     description=description,  # pylint:disable=possibly-used-before-assignment
                     # description is defined and set at this point because the enhanced list view always starts with
@@ -310,6 +302,16 @@ class DocxTableConverter:
                 )
                 rows.append(row)
                 _logger.debug("Successfully read row #%s ('%s')", step_number, description)
+
+            if len(sub_rows) == 1 and enhanced_table_row.sub_row_position == _EbdSubRowPosition.SINGLE:
+                row = EbdTableRow(
+                    description=description,  # pylint:disable=possibly-used-before-assignment
+                    step_number=step_number,
+                    sub_rows=sub_rows,
+                    use_cases=use_cases or None,
+                )
+                rows.append(row)
+                _logger.debug("Successfully added last single row #%s ('%s')", step_number, description)
 
             if enhanced_table_row.multi_step_instruction_text:
                 multi_step_instructions.append(
