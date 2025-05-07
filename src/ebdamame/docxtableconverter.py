@@ -262,6 +262,7 @@ class DocxTableConverter:
         """
         use_cases: list[str] = []
         last_row_position: Optional[_EbdSubRowPosition] = None
+        # todo: https://github.com/Hochfrequenz/ebdamame/issues/318
         description: str = ""
         step_number: str = ""
         for row_index, enhanced_table_row in enumerate(self._enhance_list_view(table=table, row_offset=row_offset)):
