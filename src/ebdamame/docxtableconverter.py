@@ -42,7 +42,7 @@ def _sort_columns_in_row(docx_table_row: _Row) -> Generator[_Cell, None, None]:
 
 
 _subsequent_step_pattern = re.compile(
-    r"^(?P<bool>(?:ja)|(?:nein))[\sà\uF0E0]*(?P<subsequent_step_number>(?:\d+\*?)|ende)?"
+    r"^(?P<bool>(?:ja)|(?:nein))?[\sà\uF0E0]*(?P<subsequent_step_number>(?:\d+\*?)|ende)?"
 )
 # We look for private use character (U+F0E0) to avoid encoding issues which corresponds to "->" in the docx documents.
 _step_number_pattern = re.compile(_STEP_NUMBER_REGEX)
@@ -79,23 +79,24 @@ def _get_use_cases(cells: List[_Cell]) -> List[str]:
     return use_cases  # we don't return None here because we need something that has a length in the calling code
 
 
-def _read_subsequent_step_cell(cell: _Cell) -> Tuple[bool, Optional[str]]:
+def _read_subsequent_step_cell(cell: _Cell) -> Tuple[Optional[bool], Optional[str]]:
     """
     Parses the cell that contains the outcome and the subsequent step (e.g. "ja➡5" where "5" is the subsequent step
-    number).
+    number). As a result we might also have no boolean values as there is no "ja" or "nein" pointing to the
+    subsequent step, e.g. " 110" at step "105" for E_0594 in FV2504.
     """
     cell_text = cell.text.lower().strip()
     # we first match against the lower case cell text; then we convert the "ende" to upper case again in the end.
     # this is to avoid confusion with "ja" vs. "Ja"
     match = _subsequent_step_pattern.match(cell_text)
     if not match:
-        raise ValueError(f"The cell content '{cell_text}' does not belong to a ja/nein cell")
+        raise ValueError(f"The cell content '{cell_text}' does not match a cell containing subsequent steps")
     group_dict = match.groupdict()
-    result_is_ja = group_dict["bool"] == "ja"
-    subsequent_step_number = group_dict["subsequent_step_number"]
+    result_bool = {"ja": True, "nein": False}.get(group_dict.get("bool"), None)
+    subsequent_step_number = group_dict.get("subsequent_step_number")
     if subsequent_step_number == "ende":
         subsequent_step_number = "Ende"
-    return result_is_ja, subsequent_step_number
+    return result_bool, subsequent_step_number
 
 
 class _EbdSubRowPosition(Enum):
