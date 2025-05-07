@@ -18,7 +18,7 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
 ]
 dependencies = [
-    "rebdhuhn>=0.8.0",
+    "rebdhuhn>=0.16.0",
     "python-docx>=1.1.2",
     "more_itertools>=10.5.0",
     "attrs>=24.3.0",
