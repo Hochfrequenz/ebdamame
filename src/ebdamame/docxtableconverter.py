@@ -92,7 +92,9 @@ def _read_subsequent_step_cell(cell: _Cell) -> Tuple[Optional[bool], Optional[st
     if not match:
         raise ValueError(f"The cell content '{cell_text}' does not match a cell containing subsequent steps")
     group_dict = match.groupdict()
-    result_bool = {"ja": True, "nein": False}.get(group_dict.get("bool"), None)
+    result_bool = group_dict.get("bool")
+    if result_bool is not None:
+        result_bool = result_bool == "ja"
     subsequent_step_number = group_dict.get("subsequent_step_number")
     if subsequent_step_number == "ende":
         subsequent_step_number = "Ende"
