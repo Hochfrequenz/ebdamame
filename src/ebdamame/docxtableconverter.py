@@ -267,7 +267,8 @@ class DocxTableConverter:
         step_number: str = ""
         for row_index, enhanced_table_row in enumerate(self._enhance_list_view(table=table, row_offset=row_offset)):
             if enhanced_table_row.sub_row_position == _EbdSubRowPosition.UPPER:
-                if len(sub_rows) == 1 and last_row_position == _EbdSubRowPosition.UPPER:
+                is_transition_row = len(sub_rows) == 1 and last_row_position == _EbdSubRowPosition.UPPER
+                if is_transition_row:
                     row = EbdTableRow(
                         description=description,  # pylint:disable=possibly-used-before-assignment
                         step_number=step_number,
