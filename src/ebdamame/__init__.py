@@ -109,7 +109,7 @@ def _table_is_first_ebd_table(table: Table) -> bool:
     Checks if the first row of a table contains "Prüfende Rolle". We assume that each EBD table has a header row with
     "Prüfende Rolle" in the first column.
     """
-    return "Prüfende Rolle" in table.rows[0].cells[0].text
+    return "prüfende rolle" in lower(table.rows[0].cells[0].text)
 
 
 @attrs.define(kw_only=True, frozen=True)
