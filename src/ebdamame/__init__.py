@@ -7,7 +7,7 @@ import logging
 import re
 from io import BytesIO
 from pathlib import Path
-from typing import Dict, Generator, Iterable, List, Optional, Tuple, Union
+from typing import Generator, Iterable, Optional, Union
 
 import attrs
 import docx
@@ -135,7 +135,7 @@ def is_heading(paragraph: Paragraph) -> bool:
     }
 
 
-def get_ebd_docx_tables(docx_file_path: Path, ebd_key: str) -> List[Table] | EbdNoTableSection:
+def get_ebd_docx_tables(docx_file_path: Path, ebd_key: str) -> list[Table] | EbdNoTableSection:
     """
     Opens the file specified in `docx_file_path` and returns the tables that relate to the given `ebd_key`.
 
@@ -151,7 +151,7 @@ def get_ebd_docx_tables(docx_file_path: Path, ebd_key: str) -> List[Table] | Ebd
         ebd_key (str): The EBD key to search for in the document.
 
     Returns:
-        List[Table] | EbdNoTableSection: A list of `Table` objects if tables are found, or an `EbdNoTableSection` object
+        list[Table] | EbdNoTableSection: A list of `Table` objects if tables are found, or an `EbdNoTableSection` object
         if no tables are found but the section is identified and are remark is captured.
 
     Raises:
@@ -164,7 +164,7 @@ def get_ebd_docx_tables(docx_file_path: Path, ebd_key: str) -> List[Table] | Ebd
     empty_ebd_text: str | None = None  # paragraph text if there is no ebd table
     found_table_in_subsection: bool = False
     is_inside_subsection_of_requested_table: bool = False
-    tables: List[Table] = []
+    tables: list[Table] = []
     tables_and_paragraphs = _get_tables_and_paragraphs(document)
     for table_or_paragraph in tables_and_paragraphs:
         if isinstance(table_or_paragraph, Paragraph):
@@ -261,7 +261,7 @@ class EbdChapterInformation:
 
 def _enrich_paragraphs_with_sections(
     paragraphs: Iterable[Paragraph],
-) -> Generator[Tuple[Paragraph, EbdChapterInformation], None, None]:
+) -> Generator[tuple[Paragraph, EbdChapterInformation], None, None]:
     """
     Yield each paragraph + the "Kapitel" in which it is found.
     """
@@ -304,14 +304,14 @@ def _enrich_paragraphs_with_sections(
         yield paragraph, location
 
 
-def get_all_ebd_keys(docx_file_path: Path) -> Dict[str, Tuple[str, EbdChapterInformation]]:
+def get_all_ebd_keys(docx_file_path: Path) -> dict[str, tuple[str, EbdChapterInformation]]:
     """
     Extract all EBD keys from the given file.
     Returns a dictionary with all EBD keys as keys and the respective EBD titles as values.
     E.g. key: "E_0003", value: "Bestellung der Aggregationsebene RZ prüfen"
     """
     document = get_document(docx_file_path)
-    result: Dict[str, Tuple[str, EbdChapterInformation]] = {}
+    result: dict[str, tuple[str, EbdChapterInformation]] = {}
     for paragraph, ebd_kapitel in _enrich_paragraphs_with_sections(document.paragraphs):
         match = _ebd_key_with_heading_pattern.match(paragraph.text)
         if match is None:

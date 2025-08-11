@@ -6,7 +6,7 @@ import logging
 import re
 from enum import Enum
 from itertools import cycle, groupby
-from typing import Generator, List, Literal, Optional, Tuple
+from typing import Generator, Literal, Optional
 
 import attrs
 from docx.table import Table, _Cell, _Row
@@ -49,7 +49,7 @@ _subsequent_step_pattern = re.compile(
 _step_number_pattern = re.compile(_STEP_NUMBER_REGEX)
 
 
-def _get_index_of_first_column_with_step_number(cells: List[_Cell]) -> int:
+def _get_index_of_first_column_with_step_number(cells: list[_Cell]) -> int:
     """
     returns the index of the first cell in cells, that contains a step number
     """
@@ -64,13 +64,13 @@ def _get_index_of_first_column_with_step_number(cells: List[_Cell]) -> int:
     return step_number_column_index
 
 
-def _get_use_cases(cells: List[_Cell]) -> List[str]:
+def _get_use_cases(cells: list[_Cell]) -> list[str]:
     """
     Extract use cases from the given list of cells.
     May return empty list, never returns None.
     """
     index_of_step_number = _get_index_of_first_column_with_step_number(cells)
-    use_cases: List[str]
+    use_cases: list[str]
     if index_of_step_number != 0:
         # "use_cases" are present; This means, that this step must only be applied for certain scenarios,
         use_cases = [c.text for c in cells[0:index_of_step_number]]
@@ -80,7 +80,7 @@ def _get_use_cases(cells: List[_Cell]) -> List[str]:
     return use_cases  # we don't return None here because we need something that has a length in the calling code
 
 
-def _read_subsequent_step_cell(cell: _Cell) -> Tuple[Optional[bool], Optional[str]]:
+def _read_subsequent_step_cell(cell: _Cell) -> tuple[Optional[bool], Optional[str]]:
     """
     Parses the cell that contains the outcome and the subsequent step (e.g. "ja➡5" where "5" is the subsequent step
     number). As a result we might also have no boolean values as there is no "ja" or "nein" pointing to the
@@ -134,7 +134,7 @@ class _EnhancedDocxTableLine:
     """
     denotes if row is an upper/lower sub row
     """
-    cells: List[_Cell] = attrs.field(
+    cells: list[_Cell] = attrs.field(
         validator=attrs.validators.deep_iterable(
             member_validator=attrs.validators.instance_of(_Cell), iterable_validator=attrs.validators.instance_of(list)
         )
@@ -167,7 +167,7 @@ class DocxTableConverter:
     converts docx tables to EbdTables
     """
 
-    def __init__(self, docx_tables: List[Table], ebd_key: str, chapter: str, section: str, ebd_name: str):
+    def __init__(self, docx_tables: list[Table], ebd_key: str, chapter: str, section: str, ebd_name: str):
         """
         the constructor initializes the instance and reads some metadata from the (first) table header
         """
@@ -185,7 +185,7 @@ class DocxTableConverter:
             # Now it feels natural, to loop over the cells/columns of the first row, but before we do so, we have to
             # remove duplicates. Although there are usually only 5 columns visible, technically there might be even 8.
             # In these cases (e.g. for E_0453) columns like 'Prüfergebnis' simply occur twice in the docx table header.
-            distinct_cell_texts: List[str] = [
+            distinct_cell_texts: list[str] = [
                 x[0]
                 for x in groupby(
                     first(docx_tables).rows[row_index].cells, lambda cell: cell.text
@@ -215,12 +215,12 @@ class DocxTableConverter:
         )
 
     @staticmethod
-    def _enhance_list_view(table: Table, row_offset: int) -> List[_EnhancedDocxTableLine]:
+    def _enhance_list_view(table: Table, row_offset: int) -> list[_EnhancedDocxTableLine]:
         """
         Loop over the given table and enhance the table rows with additional information.
         It spares the main loop in _handle_single_table from peeking ahead or looking back.
         """
-        result: List[_EnhancedDocxTableLine] = []
+        result: list[_EnhancedDocxTableLine] = []
         upper_lower_iterator = cycle([_EbdSubRowPosition.UPPER, _EbdSubRowPosition.LOWER])
         multi_step_instruction_text: Optional[str] = None
         for table_row, sub_row_position in zip(
@@ -252,7 +252,7 @@ class DocxTableConverter:
     def _handle_single_table(
         self,
         table: Table,
-        multi_step_instructions: List[MultiStepInstruction],
+        multi_step_instructions: list[MultiStepInstruction],
         row_offset: int,
         rows: list[EbdTableRow],
         sub_rows: list[EbdTableSubRow],
@@ -397,9 +397,9 @@ class DocxTableConverter:
         Converts the raw docx tables of an EBD to an EbdTable.
         The latter contains the same data but in an easily accessible format that can be used to e.g. plot real graphs.
         """
-        rows: List[EbdTableRow] = []
-        sub_rows: List[EbdTableSubRow] = []
-        multi_step_instructions: List[MultiStepInstruction] = []
+        rows: list[EbdTableRow] = []
+        sub_rows: list[EbdTableSubRow] = []
+        multi_step_instructions: list[MultiStepInstruction] = []
         for table_index, table in enumerate(self._docx_tables):
             offset: int = 0
             if table_index == 0:
