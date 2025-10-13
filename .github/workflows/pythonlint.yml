@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        linter-env: ["linting", "type_check"]
+        linter-env: ["linting", "type_check", "spell_check"]
     steps:
       - uses: actions/checkout@v5
       - name: Set up Python
