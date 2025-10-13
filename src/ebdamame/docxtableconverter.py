@@ -306,7 +306,7 @@ class DocxTableConverter:
                 row = EbdTableRow(
                     description=description,  # pylint:disable=possibly-used-before-assignment
                     # description is defined and set at this point because the enhanced list view always starts with
-                    # UPPER. Hence, the second iteration of the outer for loop is the earlist we try access it.
+                    # UPPER. Hence, the second iteration of the outer for loop is the earliest we try access it.
                     step_number=step_number,
                     sub_rows=sub_rows,
                     use_cases=use_cases or None,
