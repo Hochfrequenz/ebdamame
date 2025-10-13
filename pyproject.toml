@@ -36,7 +36,7 @@ formatting = [
     "isort==7.0.0"
 ]
 linting = [
-    "pylint==3.3.9"
+    "pylint==4.0.0"
 ]
 spellcheck = [
     "codespell==2.4.1"
