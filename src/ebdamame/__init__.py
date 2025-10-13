@@ -2,9 +2,11 @@
 Contains high level functions to process .docx files
 """
 
+import gc
 import itertools
 import logging
 import re
+import sys
 from io import BytesIO
 from pathlib import Path
 from typing import Generator, Iterable, Optional, Union
@@ -18,6 +20,21 @@ from docx.table import Table, _Cell
 from docx.text.paragraph import Paragraph
 
 _logger = logging.getLogger(__name__)
+
+_is_python_version_314 = sys.version_info[0:2] == (3, 14)
+_is_manually_triggered_garbage_collection_required = _is_python_version_314
+
+"""
+I don't know the reason why, but the CI failed in Python 3.14 with the following message:
+"Error: Process completed with exit code 143."
+based on the commit https://github.com/Hochfrequenz/ebdamame/pull/363/commits/b6a456345d46a11fe09c6c1c32ff66e62cb1392c
+
+The python-docx repo as of 2025-10-13 mentions one open issue which might be related:
+https://github.com/python-openxml/python-docx/issues/1428
+Also in the CPython repository there is an open regression bug, that maybe affects ebdamame internally:
+https://github.com/python/cpython/issues/139951
+So as a workaround, we trigger garbage collection manually after working with a docx file.
+"""
 
 
 def get_document(docx_file_path: Path) -> DocumentType:
@@ -227,7 +244,12 @@ def get_ebd_docx_tables(docx_file_path: Path, ebd_key: str) -> list[Table] | Ebd
                 raise TableNotFoundError(ebd_key=ebd_key)
             return EbdNoTableSection(ebd_key=ebd_key, remark="")
         return EbdNoTableSection(ebd_key=ebd_key, remark=empty_ebd_text.strip())
-    return tables
+    try:
+        return tables
+    finally:
+        if _is_manually_triggered_garbage_collection_required:
+            del document
+            gc.collect()
 
 
 # pylint:disable=too-few-public-methods
@@ -324,4 +346,9 @@ def get_all_ebd_keys(docx_file_path: Path) -> dict[str, tuple[str, EbdChapterInf
         result[ebd_key] = (title, ebd_kapitel)
         _logger.debug("Found EBD %s: '%s' (%s)", ebd_key, title, ebd_kapitel)
     _logger.info("%i EBD keys have been found", len(result))
-    return result
+    try:
+        return result
+    finally:
+        if _is_manually_triggered_garbage_collection_required:
+            del document
+            gc.collect()
