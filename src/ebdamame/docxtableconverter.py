@@ -223,6 +223,11 @@ class DocxTableConverter:
         result: list[_EnhancedDocxTableLine] = []
         upper_lower_iterator = cycle([_EbdSubRowPosition.UPPER, _EbdSubRowPosition.LOWER])
         multi_step_instruction_text: Optional[str] = None
+        # issue 133: table.rows does not contain _all_ rows.
+        # we can see in table.blob that there are rows which are not in table.rows,
+        # e.g. the row 'Gibt es mehr als eine Position mit dieser Artikel-ID?'
+        if "Gibt es mehr als eine Position mit dieser Artikel-ID?" in table.part.blob.decode():
+            assert "Gibt es mehr als eine Position mit dieser Artikel-ID?" in table._element.xml
         for table_row, sub_row_position in zip(
             table.rows[row_offset:],
             upper_lower_iterator,
