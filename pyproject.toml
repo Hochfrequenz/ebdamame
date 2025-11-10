@@ -30,7 +30,7 @@ dynamic = ["readme", "version"]
 
 [project.optional-dependencies]
 coverage = [
-    "coverage==7.11.0"
+    "coverage==7.11.3"
 ]
 formatting = [
     "black==25.9.0",
