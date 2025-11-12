@@ -1,8 +1,9 @@
-from typing import List, Tuple
+from typing import Callable, List, Tuple
 
 import pytest  # type:ignore[import]
 from docx.table import Table
-from rebdhuhn.models.ebd_table import EbdTable, EbdTableMetaData
+from rebdhuhn.models.ebd_table import EbdTable, EbdTableMetaData, EbdTableRow
+
 
 from ebdamame import EbdChapterInformation, EbdNoTableSection, TableNotFoundError
 from ebdamame.docxtableconverter import DocxTableConverter
@@ -16,6 +17,12 @@ def get_ebd_keys_and_files(datafiles, request) -> List[Tuple[str, str]]:
     filename = request.param
     all_keys_and_files = ((key, filename) for key in get_all_ebd_keys(datafiles, filename).keys())
     return list(all_keys_and_files)
+
+
+def _assert_row_is_present(table: EbdTable, row_predicate: Callable[[EbdTableRow], bool], message: str) -> None:
+    result = any(row for row in table.rows if row_predicate(row))
+    if not result:
+        raise AssertionError(message)
 
 
 class TestEbdamame:
@@ -119,11 +126,46 @@ class TestEbdamame:
             for table in actual:
                 assert isinstance(table, Table)
 
+    @pytest.mark.datafiles("unittests/test_data/ebd20240327_v35.docx")
+    @pytest.mark.parametrize(
+        "filename, ebd_key, predicate",
+        [
+            pytest.param(
+                "ebd20240327_v35.docx",
+                "E_0406",
+                lambda table: _assert_row_is_present(
+                    table, lambda row: row.step_number == "430", "Step 430 must be present"
+                ),
+                id="E_0406: must not skip rows 427 (issue 133)",
+            ),
+            pytest.param(
+                "ebd20240327_v35.docx",
+                "E_0406",
+                lambda table: _assert_row_is_present(
+                    table, lambda row: row.step_number == "817", "Step 817 must be present"
+                ),
+                id="E_0406: must not skip rows 818 (issue 133)",
+            ),
+            # and many more not explicitly asserted here
+            # https://github.com/Hochfrequenz/ebdamame/issues/133#issuecomment-2039885502
+        ],
+    )
+    def test_issue_133(self, datafiles, filename: str, ebd_key: str, predicate: Callable[[EbdTable], None]):
+        docx_tables = get_ebd_docx_tables(datafiles, filename, ebd_key=ebd_key)
+        converter = DocxTableConverter(
+            docx_tables, ebd_key=ebd_key, chapter="Dummy Chapter", sub_chapter="Dummy Subchapter"
+        )
+        actual = converter.convert_docx_tables_to_ebd_table()  # must not throw TableNotFoundError
+        assert isinstance(actual, EbdTable)
+        assert predicate(actual)
+
     @pytest.mark.datafiles("unittests/test_data/ebd20230629_v34.docx")
+    @pytest.mark.datafiles("unittests/test_data/ebd20240327_v35.docx")
     @pytest.mark.parametrize(
         "filename, ebd_key",
         [
-            pytest.param("ebd20230629_v34.docx", "E_0406", id="E_0406: EB-Table starts after pages of text"),
+            pytest.param("ebd20230629_v34.docx", "E_0406", id="E_0406 (2023): EB-Table starts after pages of text"),
+            pytest.param("ebd20240327_v35.docx", "E_0406", id="E_0406 (2024): EB-Table starts after pages of text"),
         ],
     )
     def test_finding_tables_positive(self, datafiles, filename: str, ebd_key: str):
@@ -169,6 +211,7 @@ class TestEbdamame:
                 _ = converter.convert_docx_tables_to_ebd_table()
 
     @pytest.mark.datafiles("unittests/test_data/ebd20230619_v34.docx")
+    @pytest.mark.datafiles("unittests/test_data/ebd20240327_v35.docx")
     @pytest.mark.parametrize(
         "filename, ebd_key, excepted_subsequent",
         [
