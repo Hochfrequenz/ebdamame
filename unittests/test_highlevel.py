@@ -368,6 +368,9 @@ class TestEbdamame:
                 except AttributeError as attribute_error:
                     if attribute_error.name == "_column_index_step_number":
                         pytest.skip(f"{ebd_key}\t https://github.com/Hochfrequenz/ebdamame/issues/71")
+                except EbdTableNotConvertibleError:
+                    # https://github.com/Hochfrequenz/ebdamame/issues/23
+                    pass  # ignore forever
                 except TableNotFoundError:
                     # https://github.com/Hochfrequenz/ebdamame/issues/9
                     pass  # ignore for now
