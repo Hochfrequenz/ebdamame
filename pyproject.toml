@@ -22,7 +22,7 @@ dependencies = [
     "rebdhuhn>=0.16.0",
     "python-docx>=1.1.2",
     "more_itertools>=10.5.0",
-    "attrs>=24.3.0",
+    "pydantic>=2.0",
     "click>=8.1.8"
     # add all the dependencies from requirements.in here, too
 ]

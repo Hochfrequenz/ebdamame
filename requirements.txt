@@ -4,9 +4,10 @@
 #
 #    pip-compile pyproject.toml
 #
+annotated-types==0.7.0
+    # via pydantic
 attrs==25.4.0
     # via
-    #   -r requirements.in
     #   cattrs
     #   rebdhuhn
 cattrs==25.3.0
@@ -16,7 +17,9 @@ certifi==2025.10.5
 charset-normalizer==3.4.3
     # via requests
 click==8.3.1
-    # via -r requirements.in
+    # via ebdamame (pyproject.toml)
+colorama==0.4.6
+    # via click
 idna==3.10
     # via requests
 lxml==6.0.2
@@ -25,13 +28,17 @@ lxml==6.0.2
     #   rebdhuhn
     #   svgutils
 more-itertools==10.8.0
-    # via -r requirements.in
+    # via ebdamame (pyproject.toml)
 networkx==3.5
     # via rebdhuhn
+pydantic==2.12.5
+    # via ebdamame (pyproject.toml)
+pydantic-core==2.41.5
+    # via pydantic
 python-docx==1.2.0
-    # via -r requirements.in
+    # via ebdamame (pyproject.toml)
 rebdhuhn==0.17.5
-    # via -r requirements.in
+    # via ebdamame (pyproject.toml)
 requests==2.32.5
     # via rebdhuhn
 svgutils==0.3.4
@@ -39,6 +46,11 @@ svgutils==0.3.4
 typing-extensions==4.15.0
     # via
     #   cattrs
+    #   pydantic
+    #   pydantic-core
     #   python-docx
+    #   typing-inspection
+typing-inspection==0.4.2
+    # via pydantic
 urllib3==2.6.0
     # via requests

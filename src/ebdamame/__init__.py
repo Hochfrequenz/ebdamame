@@ -11,13 +11,13 @@ from io import BytesIO
 from pathlib import Path
 from typing import Generator, Iterable, Optional, Union
 
-import attrs
 import docx
 from docx.document import Document as DocumentType
 from docx.oxml.table import CT_Tbl
 from docx.oxml.text.paragraph import CT_P
 from docx.table import Table, _Cell
 from docx.text.paragraph import Paragraph
+from pydantic import BaseModel, ConfigDict, Field
 
 _logger = logging.getLogger(__name__)
 
@@ -149,14 +149,15 @@ def _table_is_first_ebd_table(table: Table) -> bool:
     return "prüfende rolle" in table.rows[0].cells[0].text.lower()
 
 
-@attrs.define(kw_only=True, frozen=True)
-class EbdNoTableSection:
+class EbdNoTableSection(BaseModel):
     """
     Represents an empty section in the document
     """
 
-    ebd_key: str = attrs.field(validator=attrs.validators.instance_of(str))
-    remark: str = attrs.field(validator=attrs.validators.instance_of(str))
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    ebd_key: str
+    remark: str
 
 
 # pylint:disable=too-many-branches
@@ -272,8 +273,7 @@ def get_ebd_docx_tables(docx_file_path: Path, ebd_key: str) -> list[Table] | Ebd
 
 
 # pylint:disable=too-few-public-methods
-@attrs.define(kw_only=True, frozen=True)
-class EbdChapterInformation:
+class EbdChapterInformation(BaseModel):
     """
     Contains information about where an EBD is located within the document.
     If the heading is e.g. "5.2.1" we denote this as:
@@ -282,22 +282,14 @@ class EbdChapterInformation:
     * subsection 1
     """
 
-    chapter: int = attrs.field(
-        validator=attrs.validators.and_(attrs.validators.instance_of(int), attrs.validators.ge(1))
-    )
-    chapter_title: Optional[str] = attrs.field(validator=attrs.validators.optional(attrs.validators.instance_of(str)))
-    section: int = attrs.field(
-        validator=attrs.validators.and_(attrs.validators.instance_of(int), attrs.validators.ge(1))
-    )
+    model_config = ConfigDict(frozen=True)
 
-    section_title: Optional[str] = attrs.field(validator=attrs.validators.optional(attrs.validators.instance_of(str)))
-    subsection: int = attrs.field(
-        validator=attrs.validators.and_(attrs.validators.instance_of(int), attrs.validators.ge(1))
-    )
-
-    subsection_title: Optional[str] = attrs.field(
-        validator=attrs.validators.optional(attrs.validators.instance_of(str))
-    )
+    chapter: int = Field(ge=1)
+    chapter_title: Optional[str] = None
+    section: int = Field(ge=1)
+    section_title: Optional[str] = None
+    subsection: int = Field(ge=1)
+    subsection_title: Optional[str] = None
 
 
 def _enrich_paragraphs_with_sections(

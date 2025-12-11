@@ -8,9 +8,9 @@ from enum import Enum
 from itertools import cycle, groupby
 from typing import Generator, Literal, Optional
 
-import attrs
 from docx.table import Table, _Cell, _Row
 from more_itertools import first, first_true, last
+from pydantic import BaseModel, ConfigDict
 from rebdhuhn.models.ebd_table import (
     _STEP_NUMBER_REGEX,
     EbdCheckResult,
@@ -120,33 +120,28 @@ class _EbdSubRowPosition(Enum):
 
 
 # pylint:disable=too-few-public-methods
-@attrs.define
-class _EnhancedDocxTableLine:
+class _EnhancedDocxTableLine(BaseModel):
     """
     A structure that primarily contains a single row from a DOCX table but also meta information about previous and
     following elements in the table. It gathers information that are not directly accessible when only looking at one
     single row.
     """
 
-    row: _Row = attrs.field(validator=attrs.validators.instance_of(_Row))
+    model_config = ConfigDict(frozen=True, arbitrary_types_allowed=True)
+
+    row: _Row
     """
     The row that is currently being processed
     """
-    sub_row_position: _EbdSubRowPosition = attrs.field(validator=attrs.validators.instance_of(_EbdSubRowPosition))
+    sub_row_position: _EbdSubRowPosition
     """
     denotes if row is an upper/lower sub row
     """
-    cells: list[_Cell] = attrs.field(
-        validator=attrs.validators.deep_iterable(
-            member_validator=attrs.validators.instance_of(_Cell), iterable_validator=attrs.validators.instance_of(list)
-        )
-    )
+    cells: list[_Cell]
     """
     the (sanitized) cells of the row
     """
-    multi_step_instruction_text: Optional[str] = attrs.field(
-        validator=attrs.validators.optional(attrs.validators.instance_of(str))
-    )
+    multi_step_instruction_text: Optional[str] = None
     """
     a multistep instruction text that may be applicable to this row (if not None)
     """
