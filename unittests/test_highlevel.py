@@ -4,7 +4,7 @@ import pytest  # type:ignore[import]
 from docx.table import Table
 from rebdhuhn.models.ebd_table import EbdTable, EbdTableMetaData
 
-from ebdamame import EbdChapterInformation, EbdNoTableSection, TableNotFoundError
+from ebdamame import EbdChapterInformation, EbdNoTableSection, EbdTableNotConvertibleError, TableNotFoundError
 from ebdamame.docxtableconverter import DocxTableConverter
 
 from . import get_all_ebd_keys, get_document, get_ebd_docx_tables
@@ -263,6 +263,31 @@ class TestEbdamame:
         actual = converter.convert_docx_tables_to_ebd_table()
         assert actual == expected
 
+    @pytest.mark.datafiles("unittests/test_data/EBD_4.2_20260401_99991231_20251211_oxox_12000.docx")
+    def test_extraction_of_e0060_raises_ebd_table_not_convertible_error(self, datafiles):
+        """
+        Test extraction of E_0060 from EBD v4.2 document.
+        E_0060 has a simple table structure with "--" values instead of ja/nein,
+        which is not yet supported by the converter.
+        See: https://github.com/Hochfrequenz/ebdamame/issues/23
+        """
+        filename = "EBD_4.2_20260401_99991231_20251211_oxox_12000.docx"
+        ebd_key = "E_0060"
+        docx_tables = get_ebd_docx_tables(datafiles, filename, ebd_key=ebd_key)
+        assert docx_tables is not None and not isinstance(docx_tables, EbdNoTableSection)
+        assert len(docx_tables) >= 1
+        converter = DocxTableConverter(
+            docx_tables,
+            ebd_key=ebd_key,
+            chapter="MaBiS",
+            section="AD: Übermittlung Datenstatus des Deltazeitreihenübertrags vom BIKO an ÜNB und NB",
+            ebd_name="E_0060_Datenstatus nach Eingang eines Deltazeitreihenübertrags vergeben",
+        )
+        with pytest.raises(EbdTableNotConvertibleError) as exc_info:
+            converter.convert_docx_tables_to_ebd_table()
+        assert exc_info.value.ebd_key == ebd_key
+        assert "non-boolean" in exc_info.value.reason.lower() or "--" in exc_info.value.reason
+
     @pytest.mark.snapshot
     @pytest.mark.datafiles("unittests/test_data/ebd20221128.docx")
     @pytest.mark.datafiles("unittests/test_data/ebd20230619_v33.docx")
@@ -343,6 +368,9 @@ class TestEbdamame:
                 except AttributeError as attribute_error:
                     if attribute_error.name == "_column_index_step_number":
                         pytest.skip(f"{ebd_key}\t https://github.com/Hochfrequenz/ebdamame/issues/71")
+                except EbdTableNotConvertibleError:
+                    # https://github.com/Hochfrequenz/ebdamame/issues/23
+                    pass  # ignore forever
                 except TableNotFoundError:
                     # https://github.com/Hochfrequenz/ebdamame/issues/9
                     pass  # ignore for now
@@ -357,9 +385,6 @@ class TestEbdamame:
                         case "Exactly one of the entries in sub_rows has to have check_result.result True":
                             # https://github.com/Hochfrequenz/ebdamame/issues/21
                             issue_number = "21"
-                        case "The cell content '--' does not belong to a ja/nein cell":
-                            # https://github.com/Hochfrequenz/ebdamame/issues/23
-                            issue_number = "23"
                         case "The cell content 'gültiges daten-ergebnis' does not belong to a ja/nein cell":
                             # https://github.com/Hochfrequenz/ebdamame/issues/74
                             issue_number = "74"

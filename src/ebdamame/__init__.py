@@ -84,6 +84,23 @@ class TableNotFoundError(Exception):
         self.ebd_key = ebd_key
 
 
+class EbdTableNotConvertibleError(Exception):
+    """
+    An error that is raised when an EBD table is found but cannot be converted
+    to the EbdTable model due to unsupported format.
+
+    Example: E_0060 from EBD v4.2 uses "--" values instead of "ja/nein" outcomes,
+    which the current converter does not support.
+
+    See: https://github.com/Hochfrequenz/ebdamame/issues/23
+    """
+
+    def __init__(self, ebd_key: str, reason: str):
+        self.ebd_key = ebd_key
+        self.reason = reason
+        super().__init__(f"EBD table '{ebd_key}' cannot be converted: {reason}")
+
+
 _ebd_cell_pattern = re.compile(r"^(?:ja|nein)\s*(?:Ende|\d+)$")
 """
 any EBD table shall contain at least one cell that matches this pattern
@@ -111,6 +128,8 @@ def _table_is_an_ebd_table(table: Table) -> bool:
     This is to distinguish between tables that are inside the same subsection that describes an EBD but are not part
     of the decision tree at all (e.g. in E_0406 the tables about Artikel-IDs).
     """
+    if _table_is_first_ebd_table(table):
+        return True
     for row in table.rows:
         try:
             for cell in row.cells:

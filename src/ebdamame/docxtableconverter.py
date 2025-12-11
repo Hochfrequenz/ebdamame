@@ -21,6 +21,8 @@ from rebdhuhn.models.ebd_table import (
     MultiStepInstruction,
 )
 
+from ebdamame import EbdTableNotConvertibleError
+
 _logger = logging.getLogger(__name__)
 
 
@@ -396,15 +398,26 @@ class DocxTableConverter:
         """
         Converts the raw docx tables of an EBD to an EbdTable.
         The latter contains the same data but in an easily accessible format that can be used to e.g. plot real graphs.
+
+        Raises:
+            EbdTableNotConvertibleError: If the table format is not supported (e.g. uses "--" instead of ja/nein).
         """
         rows: list[EbdTableRow] = []
         sub_rows: list[EbdTableSubRow] = []
         multi_step_instructions: list[MultiStepInstruction] = []
-        for table_index, table in enumerate(self._docx_tables):
-            offset: int = 0
-            if table_index == 0:
-                offset = self._row_index_last_header + 1
-            self._handle_single_table(table, multi_step_instructions, offset, rows, sub_rows)
+        try:
+            for table_index, table in enumerate(self._docx_tables):
+                offset: int = 0
+                if table_index == 0:
+                    offset = self._row_index_last_header + 1
+                self._handle_single_table(table, multi_step_instructions, offset, rows, sub_rows)
+        except ValueError as e:
+            if "result is not boolean" in str(e).lower():
+                raise EbdTableNotConvertibleError(
+                    ebd_key=self._metadata.ebd_code,
+                    reason="Table uses non-boolean format (e.g. '--' instead of 'ja/nein')",
+                ) from e
+            raise
         result = EbdTable(rows=rows, metadata=self._metadata, multi_step_instructions=multi_step_instructions or None)
         _logger.info("Successfully created an EbdTable for EBD '%s'", result.metadata.ebd_code)
         return result
