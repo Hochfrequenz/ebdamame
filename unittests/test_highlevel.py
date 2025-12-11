@@ -264,7 +264,7 @@ class TestEbdamame:
         assert actual == expected
 
     @pytest.mark.datafiles("unittests/test_data/EBD_4.2_20260401_99991231_20251211_oxox_12000.docx")
-    def test_extract_e0060(self, datafiles):
+    def test_extraction_of_e0060_raises_ebd_table_not_convertible_error(self, datafiles):
         """
         Test extraction of E_0060 from EBD v4.2 document.
         E_0060 has a simple table structure with "--" values instead of ja/nein,
