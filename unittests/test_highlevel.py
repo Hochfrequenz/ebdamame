@@ -4,7 +4,7 @@ import pytest  # type:ignore[import]
 from docx.table import Table
 from rebdhuhn.models.ebd_table import EbdTable, EbdTableMetaData
 
-from ebdamame import EbdChapterInformation, EbdNoTableSection, TableNotFoundError
+from ebdamame import EbdChapterInformation, EbdNoTableSection, EbdTableNotConvertibleError, TableNotFoundError
 from ebdamame.docxtableconverter import DocxTableConverter
 
 from . import get_all_ebd_keys, get_document, get_ebd_docx_tables
@@ -262,6 +262,31 @@ class TestEbdamame:
         converter = DocxTableConverter(docx_table, ebd_key=ebd_key, chapter=chapter, ebd_name=ebd_name, section=section)
         actual = converter.convert_docx_tables_to_ebd_table()
         assert actual == expected
+
+    @pytest.mark.datafiles("unittests/test_data/EBD_4.2_20260401_99991231_20251211_oxox_12000.docx")
+    def test_extract_e0060(self, datafiles):
+        """
+        Test extraction of E_0060 from EBD v4.2 document.
+        E_0060 has a simple table structure with "--" values instead of ja/nein,
+        which is not yet supported by the converter.
+        See: https://github.com/Hochfrequenz/ebdamame/issues/23
+        """
+        filename = "EBD_4.2_20260401_99991231_20251211_oxox_12000.docx"
+        ebd_key = "E_0060"
+        docx_tables = get_ebd_docx_tables(datafiles, filename, ebd_key=ebd_key)
+        assert docx_tables is not None and not isinstance(docx_tables, EbdNoTableSection)
+        assert len(docx_tables) >= 1
+        converter = DocxTableConverter(
+            docx_tables,
+            ebd_key=ebd_key,
+            chapter="MaBiS",
+            section="AD: Übermittlung Datenstatus des Deltazeitreihenübertrags vom BIKO an ÜNB und NB",
+            ebd_name="E_0060_Datenstatus nach Eingang eines Deltazeitreihenübertrags vergeben",
+        )
+        with pytest.raises(EbdTableNotConvertibleError) as exc_info:
+            converter.convert_docx_tables_to_ebd_table()
+        assert exc_info.value.ebd_key == ebd_key
+        assert "non-boolean" in exc_info.value.reason.lower() or "--" in exc_info.value.reason
 
     @pytest.mark.snapshot
     @pytest.mark.datafiles("unittests/test_data/ebd20221128.docx")
