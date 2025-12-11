@@ -385,9 +385,6 @@ class TestEbdamame:
                         case "Exactly one of the entries in sub_rows has to have check_result.result True":
                             # https://github.com/Hochfrequenz/ebdamame/issues/21
                             issue_number = "21"
-                        case "The cell content '--' does not belong to a ja/nein cell":
-                            # https://github.com/Hochfrequenz/ebdamame/issues/23
-                            issue_number = "23"
                         case "The cell content 'gültiges daten-ergebnis' does not belong to a ja/nein cell":
                             # https://github.com/Hochfrequenz/ebdamame/issues/74
                             issue_number = "74"
