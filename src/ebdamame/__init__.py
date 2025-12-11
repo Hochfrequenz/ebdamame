@@ -154,7 +154,7 @@ class EbdNoTableSection(BaseModel):
     Represents an empty section in the document
     """
 
-    model_config = ConfigDict(frozen=True, extra="forbid", kw_only=True)
+    model_config = ConfigDict(frozen=True, extra="forbid")
 
     ebd_key: str
     remark: str
