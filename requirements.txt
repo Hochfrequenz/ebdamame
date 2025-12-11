@@ -29,7 +29,7 @@ lxml==6.0.2
     #   svgutils
 more-itertools==10.8.0
     # via ebdamame (pyproject.toml)
-networkx==3.5
+networkx==3.6.1
     # via rebdhuhn
 pydantic==2.12.5
     # via ebdamame (pyproject.toml)
