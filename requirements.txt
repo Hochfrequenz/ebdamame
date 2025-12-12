@@ -37,7 +37,7 @@ pydantic-core==2.41.5
     # via pydantic
 python-docx==1.2.0
     # via ebdamame (pyproject.toml)
-rebdhuhn==0.17.5
+rebdhuhn==0.18.1
     # via ebdamame (pyproject.toml)
 requests==2.32.5
     # via rebdhuhn
