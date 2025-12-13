@@ -4,13 +4,15 @@ import pytest  # type:ignore[import]
 from docx.table import Table
 from rebdhuhn.models.ebd_table import EbdTable, EbdTableMetaData
 
-import ebdamame
 from ebdamame import (
     EbdChapterInformation,
     EbdNoTableSection,
     EbdTableNotConvertibleError,
     StepNumberNotFoundError,
     TableNotFoundError,
+    get_all_ebd_keys,
+    get_document,
+    get_ebd_docx_tables,
 )
 from ebdamame.docxtableconverter import DocxTableConverter
 
@@ -29,7 +31,7 @@ from .examples import table_e0003, table_e0097, table_e0453, table_e0462, table_
 @pytest.fixture
 def get_ebd_keys_and_files(request: pytest.FixtureRequest) -> list[tuple[str, Path]]:
     path: Path = request.param
-    all_keys_and_files = ((key, path) for key in ebdamame.get_all_ebd_keys(path).keys())
+    all_keys_and_files = ((key, path) for key in get_all_ebd_keys(path).keys())
     return list(all_keys_and_files)
 
 
@@ -40,7 +42,7 @@ class TestEbdamame:
 
     @pytest.mark.parametrize("path", [EBD_2022_11_28, EBD_2023_06_19_V33, EBD_2023_06_29_V34])
     def test_can_read_document(self, path: Path):
-        actual = ebdamame.get_document(path)
+        actual = get_document(path)
         assert actual is not None
 
     @pytest.mark.parametrize(
@@ -93,7 +95,7 @@ class TestEbdamame:
     def test_get_ebd_keys(
         self, path: Path, expected_length: int, expected_entries: list[tuple[str, EbdChapterInformation]]
     ):
-        actual = ebdamame.get_all_ebd_keys(path)
+        actual = get_all_ebd_keys(path)
         assert len(actual) == expected_length  # arbitrary, didn't check if these are really _all_ the keys
         kapitels = sorted(actual.values(), key=lambda k: (k[1].chapter, k[1].section, k[1].subsection))
         for expected_entry in expected_entries:
@@ -116,7 +118,7 @@ class TestEbdamame:
         ],
     )
     def test_get_ebd_docx_table(self, path: Path, ebd_key: str, expected_number_of_tables: int, empty_ebd_str: str):
-        actual = ebdamame.get_ebd_docx_tables(path, ebd_key=ebd_key)
+        actual = get_ebd_docx_tables(path, ebd_key=ebd_key)
         assert actual is not None
         if isinstance(actual, EbdNoTableSection):
             assert actual.remark == empty_ebd_str
@@ -132,7 +134,7 @@ class TestEbdamame:
         ],
     )
     def test_finding_tables_positive(self, path: Path, ebd_key: str):
-        docx_tables = ebdamame.get_ebd_docx_tables(path, ebd_key=ebd_key)
+        docx_tables = get_ebd_docx_tables(path, ebd_key=ebd_key)
         assert docx_tables is not None and not isinstance(docx_tables, EbdNoTableSection)
         converter = DocxTableConverter(
             docx_tables,
@@ -158,11 +160,11 @@ class TestEbdamame:
     )
     def test_finding_tables_negative(self, path: Path, ebd_key: str, empty_ebd_str: str):
         if empty_ebd_str != "":
-            empty_section = ebdamame.get_ebd_docx_tables(path, ebd_key=ebd_key)
+            empty_section = get_ebd_docx_tables(path, ebd_key=ebd_key)
             assert isinstance(empty_section, EbdNoTableSection) and empty_section.remark == empty_ebd_str
         else:
             with pytest.raises(TableNotFoundError):
-                ebdamame.get_ebd_docx_tables(path, ebd_key=ebd_key)
+                get_ebd_docx_tables(path, ebd_key=ebd_key)
                 converter = DocxTableConverter(
                     [],
                     ebd_key=ebd_key,
@@ -180,7 +182,7 @@ class TestEbdamame:
         ],
     )
     def test_wrong_encoding_of_rightarrow(self, path: Path, ebd_key: str, excepted_subsequent: str):
-        docx_tables = ebdamame.get_ebd_docx_tables(path, ebd_key=ebd_key)
+        docx_tables = get_ebd_docx_tables(path, ebd_key=ebd_key)
         assert docx_tables is not None and not isinstance(docx_tables, EbdNoTableSection)
         converter = DocxTableConverter(
             docx_tables, ebd_key=ebd_key, chapter="Dummy Chapter", ebd_name="Dummy EBD Name", section="Dummy Section"
@@ -258,7 +260,7 @@ class TestEbdamame:
         section: str,
         expected: EbdTable,
     ):
-        docx_table = ebdamame.get_ebd_docx_tables(path, ebd_key=ebd_key)
+        docx_table = get_ebd_docx_tables(path, ebd_key=ebd_key)
         assert docx_table is not None and not isinstance(docx_table, EbdNoTableSection)
         converter = DocxTableConverter(docx_table, ebd_key=ebd_key, chapter=chapter, ebd_name=ebd_name, section=section)
         actual = converter.convert_docx_tables_to_ebd_table()
@@ -272,7 +274,7 @@ class TestEbdamame:
         See: https://github.com/Hochfrequenz/ebdamame/issues/23
         """
         ebd_key = "E_0060"
-        docx_tables = ebdamame.get_ebd_docx_tables(EBD_V42, ebd_key=ebd_key)
+        docx_tables = get_ebd_docx_tables(EBD_V42, ebd_key=ebd_key)
         assert docx_tables is not None and not isinstance(docx_tables, EbdNoTableSection)
         assert len(docx_tables) >= 1
         converter = DocxTableConverter(
@@ -334,7 +336,7 @@ class TestEbdamame:
             with subtests.test(ebd_key, key=ebd_key, file=path.name):
                 # this requires pytest-subtests to be installed (see tox.ini)
                 try:
-                    docx_tables = ebdamame.get_ebd_docx_tables(path, ebd_key=ebd_key)
+                    docx_tables = get_ebd_docx_tables(path, ebd_key=ebd_key)
                     if isinstance(docx_tables, EbdNoTableSection):
                         actual_meta_data = EbdTableMetaData(
                             ebd_code=ebd_key,
@@ -377,7 +379,7 @@ class TestEbdamame:
         The table format in this specific version is not supported (no valid step number found).
         """
         ebd_key = "E_1020"
-        docx_tables = ebdamame.get_ebd_docx_tables(EBD_2024_04_03_V35, ebd_key=ebd_key)
+        docx_tables = get_ebd_docx_tables(EBD_2024_04_03_V35, ebd_key=ebd_key)
         assert docx_tables is not None and not isinstance(docx_tables, EbdNoTableSection)
         converter = DocxTableConverter(
             docx_tables,
@@ -398,11 +400,11 @@ class TestEbdamame:
         (these are known unsupported formats like "--" values).
         Any other errors will cause the test to fail.
         """
-        all_ebd_keys = ebdamame.get_all_ebd_keys(EBD_V42)
+        all_ebd_keys = get_all_ebd_keys(EBD_V42)
 
         for ebd_key in all_ebd_keys:
             with subtests.test(msg=ebd_key, key=ebd_key):
-                docx_tables = ebdamame.get_ebd_docx_tables(EBD_V42, ebd_key=ebd_key)
+                docx_tables = get_ebd_docx_tables(EBD_V42, ebd_key=ebd_key)
 
                 if isinstance(docx_tables, EbdNoTableSection):
                     # Section exists but has no table (e.g., references another EBD)
