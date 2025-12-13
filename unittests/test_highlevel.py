@@ -405,3 +405,36 @@ class TestEbdamame:
                             raise
                     error_msg = f"Error while scraping '{ebd_key}' (#{issue_number}): {unbound_error}"
                     pytest.skip(error_msg)
+
+    @pytest.mark.datafiles("unittests/test_data/EBD_4.2_20260401_99991231_20251211_oxox_12000.docx")
+    def test_extract_all_ebd_tables_from_v42(self, datafiles, subtests):
+        """
+        Test extraction of all EBD tables from the EBD v4.2 document.
+        This test iterates through all EBD keys found in the document and attempts
+        to extract and convert each one. EbdTableNotConvertibleError is ignored
+        (these are known unsupported formats like "--" values).
+        Any other errors will cause the test to fail.
+        """
+        filename = "EBD_4.2_20260401_99991231_20251211_oxox_12000.docx"
+        all_ebd_keys = get_all_ebd_keys(datafiles, filename)
+
+        for ebd_key in all_ebd_keys:
+            with subtests.test(msg=ebd_key, key=ebd_key):
+                docx_tables = get_ebd_docx_tables(datafiles, filename, ebd_key=ebd_key)
+
+                if isinstance(docx_tables, EbdNoTableSection):
+                    # Section exists but has no table (e.g., references another EBD)
+                    continue
+
+                converter = DocxTableConverter(
+                    docx_tables,
+                    ebd_key=ebd_key,
+                    chapter="Dummy Chapter",
+                    ebd_name=f"{ebd_key} Dummy Name",
+                    section="Dummy Section",
+                )
+                try:
+                    actual = converter.convert_docx_tables_to_ebd_table()
+                    assert isinstance(actual, EbdTable)
+                except EbdTableNotConvertibleError:
+                    pass  # Ignore known unsupported formats (e.g., "--" values)
