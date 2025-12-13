@@ -17,7 +17,24 @@ from docx.oxml.table import CT_Tbl
 from docx.oxml.text.paragraph import CT_P
 from docx.table import Table, _Cell
 from docx.text.paragraph import Paragraph
-from pydantic import BaseModel, ConfigDict, Field
+
+from .exceptions import EbdTableNotConvertibleError, StepNumberNotFoundError, TableNotFoundError
+from .models import EbdChapterInformation, EbdNoTableSection
+
+__all__ = [
+    # Exceptions
+    "EbdTableNotConvertibleError",
+    "StepNumberNotFoundError",
+    "TableNotFoundError",
+    # Models
+    "EbdChapterInformation",
+    "EbdNoTableSection",
+    # Functions
+    "get_all_ebd_keys",
+    "get_document",
+    "get_ebd_docx_tables",
+    "is_heading",
+]
 
 _logger = logging.getLogger(__name__)
 
@@ -75,51 +92,6 @@ _ebd_key_pattern = re.compile(r"^E_\d{4}$")
 _ebd_key_with_heading_pattern = re.compile(r"^(?P<key>E_\d{4})_?(?P<title>.*)\s*$")
 
 
-class TableNotFoundError(Exception):
-    """
-    an error that is raised when a requested table was not found
-    """
-
-    def __init__(self, ebd_key: str):
-        self.ebd_key = ebd_key
-
-
-class EbdTableNotConvertibleError(Exception):
-    """
-    An error that is raised when an EBD table is found but cannot be converted
-    to the EbdTable model due to unsupported format.
-
-    Example: E_0060 from EBD v4.2 uses "--" values instead of "ja/nein" outcomes,
-    which the current converter does not support.
-
-    See: https://github.com/Hochfrequenz/ebdamame/issues/23
-    """
-
-    def __init__(self, ebd_key: str, reason: str):
-        self.ebd_key = ebd_key
-        self.reason = reason
-        super().__init__(f"EBD table '{ebd_key}' cannot be converted: {reason}")
-
-
-class StepNumberNotFoundError(Exception):
-    """
-    An error that is raised when no valid step number can be found in the table row.
-
-    This typically indicates a malformed or unsupported table structure where
-    the expected step number column (e.g., "1", "2", "3*") is missing or unreadable.
-
-    Root cause analysis (E_1020 in v3.5):
-    The EBD section contains a "changelog" table (with columns like "Änd-ID", "Ort",
-    "Änderungen", etc.) that is incorrectly identified as an EBD table because it
-    contains cells starting with "Hinweis:" which triggers `_cell_is_probably_from_an_ebd_cell`.
-    The fix should improve `_table_is_an_ebd_table` detection to exclude changelog tables.
-    """
-
-    def __init__(self, ebd_key: str):
-        self.ebd_key = ebd_key
-        super().__init__(f"No cell containing a valid step number found in EBD table '{ebd_key}'")
-
-
 _ebd_cell_pattern = re.compile(r"^(?:ja|nein)\s*(?:Ende|\d+)$")
 """
 any EBD table shall contain at least one cell that matches this pattern
@@ -127,7 +99,7 @@ any EBD table shall contain at least one cell that matches this pattern
 
 
 def _cell_is_probably_from_an_ebd_cell(cell: _Cell) -> bool:
-    if "" in cell.text:
+    if "" in cell.text:
         return True
     if cell.text in {"ja", "nein"}:
         return True
@@ -166,17 +138,6 @@ def _table_is_first_ebd_table(table: Table) -> bool:
     "Prüfende Rolle" in the first column.
     """
     return "prüfende rolle" in table.rows[0].cells[0].text.lower()
-
-
-class EbdNoTableSection(BaseModel):
-    """
-    Represents an empty section in the document
-    """
-
-    model_config = ConfigDict(frozen=True, extra="forbid")
-
-    ebd_key: str
-    remark: str
 
 
 # pylint:disable=too-many-branches
@@ -289,26 +250,6 @@ def get_ebd_docx_tables(docx_file_path: Path, ebd_key: str) -> list[Table] | Ebd
         if _is_manually_triggered_garbage_collection_required:
             del document
             gc.collect()
-
-
-# pylint:disable=too-few-public-methods
-class EbdChapterInformation(BaseModel):
-    """
-    Contains information about where an EBD is located within the document.
-    If the heading is e.g. "5.2.1" we denote this as:
-    * chapter 5
-    * section 2
-    * subsection 1
-    """
-
-    model_config = ConfigDict(frozen=True)
-
-    chapter: int = Field(ge=1)
-    chapter_title: Optional[str] = None
-    section: int = Field(ge=1)
-    section_title: Optional[str] = None
-    subsection: int = Field(ge=1)
-    subsection_title: Optional[str] = None
 
 
 def _enrich_paragraphs_with_sections(
