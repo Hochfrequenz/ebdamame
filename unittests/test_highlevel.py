@@ -4,7 +4,13 @@ import pytest  # type:ignore[import]
 from docx.table import Table
 from rebdhuhn.models.ebd_table import EbdTable, EbdTableMetaData
 
-from ebdamame import EbdChapterInformation, EbdNoTableSection, EbdTableNotConvertibleError, TableNotFoundError
+from ebdamame import (
+    EbdChapterInformation,
+    EbdNoTableSection,
+    EbdTableNotConvertibleError,
+    StepNumberNotFoundError,
+    TableNotFoundError,
+)
 from ebdamame.docxtableconverter import DocxTableConverter
 
 from . import get_all_ebd_keys, get_document, get_ebd_docx_tables
@@ -371,40 +377,33 @@ class TestEbdamame:
                 except EbdTableNotConvertibleError:
                     # https://github.com/Hochfrequenz/ebdamame/issues/23
                     pass  # ignore forever
+                except StepNumberNotFoundError:
+                    # Table format not supported (no valid step number found)
+                    pass  # ignore forever
                 except TableNotFoundError:
                     # https://github.com/Hochfrequenz/ebdamame/issues/9
                     pass  # ignore for now
-                except ValueError as value_error:
-                    # Simply run the test, then see how many of the subtests pass and which are skipped.
-                    # The skipped ones require developer analysis and code improvements.
-                    # This library has probably reached v1.0.0 if this catch block is not necessary anymore.
-                    match value_error.args[0]:
-                        case "None is not in list":
-                            # https://github.com/Hochfrequenz/ebdamame/issues/20
-                            issue_number = "20"
-                        case "Exactly one of the entries in sub_rows has to have check_result.result True":
-                            # https://github.com/Hochfrequenz/ebdamame/issues/21
-                            issue_number = "21"
-                        case "The cell content 'gültiges daten-ergebnis' does not belong to a ja/nein cell":
-                            # https://github.com/Hochfrequenz/ebdamame/issues/74
-                            issue_number = "74"
-                        case "No cell containing a valid step number found.":
-                            issue_number = "to be added"
-                        case "The cell content 'à 110' does not belong to a ja/nein cell":
-                            issue_number = "to be added"
-                        case _:
-                            raise
-                    error_msg = f"Error while scraping '{ebd_key}' (#{issue_number}): {value_error}"
-                    pytest.skip(error_msg)
-                except UnboundLocalError as unbound_error:
-                    match unbound_error.args[0]:
-                        case "cannot access local variable 'role' where it is not associated with a value":
-                            # https://github.com/Hochfrequenz/ebdamame/issues/22
-                            issue_number = "22"
-                        case _:
-                            raise
-                    error_msg = f"Error while scraping '{ebd_key}' (#{issue_number}): {unbound_error}"
-                    pytest.skip(error_msg)
+
+    @pytest.mark.datafiles("unittests/test_data/ebd20240403_v35.docx")
+    def test_e1020_raises_step_number_not_found_error(self, datafiles):
+        """
+        Test that E_1020 from EBD v3.5 raises StepNumberNotFoundError instead of ValueError.
+        The table format in this specific version is not supported (no valid step number found).
+        """
+        filename = "ebd20240403_v35.docx"
+        ebd_key = "E_1020"
+        docx_tables = get_ebd_docx_tables(datafiles, filename, ebd_key=ebd_key)
+        assert docx_tables is not None and not isinstance(docx_tables, EbdNoTableSection)
+        converter = DocxTableConverter(
+            docx_tables,
+            ebd_key=ebd_key,
+            chapter="Dummy Chapter",
+            section="Dummy Section",
+            ebd_name=f"{ebd_key} Dummy Name",
+        )
+        with pytest.raises(StepNumberNotFoundError) as exc_info:
+            converter.convert_docx_tables_to_ebd_table()
+        assert exc_info.value.ebd_key == ebd_key
 
     @pytest.mark.datafiles("unittests/test_data/EBD_4.2_20260401_99991231_20251211_oxox_12000.docx")
     def test_extract_all_ebd_tables_from_v42(self, datafiles, subtests):

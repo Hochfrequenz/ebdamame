@@ -21,7 +21,7 @@ from rebdhuhn.models.ebd_table import (
     MultiStepInstruction,
 )
 
-from ebdamame import EbdTableNotConvertibleError
+from ebdamame import EbdTableNotConvertibleError, StepNumberNotFoundError
 
 _logger = logging.getLogger(__name__)
 
@@ -51,7 +51,7 @@ _subsequent_step_pattern = re.compile(
 _step_number_pattern = re.compile(_STEP_NUMBER_REGEX)
 
 
-def _get_index_of_first_column_with_step_number(cells: list[_Cell]) -> int:
+def _get_index_of_first_column_with_step_number(cells: list[_Cell], ebd_key: str) -> int:
     """
     returns the index of the first cell in cells, that contains a step number
     """
@@ -59,19 +59,19 @@ def _get_index_of_first_column_with_step_number(cells: list[_Cell]) -> int:
         cells, pred=lambda cell: _step_number_pattern.match(cell.text.strip()) is not None
     )
     if first_step_number_cell is None:
-        raise ValueError("No cell containing a valid step number found.")
+        raise StepNumberNotFoundError(ebd_key=ebd_key)
 
     step_number_column_index = cells.index(first_step_number_cell)
     _logger.debug("The step number is in column %i", step_number_column_index)
     return step_number_column_index
 
 
-def _get_use_cases(cells: list[_Cell]) -> list[str]:
+def _get_use_cases(cells: list[_Cell], ebd_key: str) -> list[str]:
     """
     Extract use cases from the given list of cells.
     May return empty list, never returns None.
     """
-    index_of_step_number = _get_index_of_first_column_with_step_number(cells)
+    index_of_step_number = _get_index_of_first_column_with_step_number(cells, ebd_key=ebd_key)
     use_cases: list[str]
     if index_of_step_number != 0:
         # "use_cases" are present; This means, that this step must only be applied for certain scenarios,
@@ -277,7 +277,7 @@ class DocxTableConverter:
                     _logger.debug("Successfully added last single row #%s ('%s')", step_number, description)
 
                 last_row_position = _EbdSubRowPosition.UPPER
-                use_cases = _get_use_cases(enhanced_table_row.cells)
+                use_cases = _get_use_cases(enhanced_table_row.cells, ebd_key=self._metadata.ebd_code)
                 sub_rows = []  # clear list every second entry
                 step_number = enhanced_table_row.cells[len(use_cases) + self._column_index_step_number].text.strip()
                 description = enhanced_table_row.cells[len(use_cases) + self._column_index_description].text.strip()
@@ -337,7 +337,7 @@ class DocxTableConverter:
         use_cases: list[str] = []
         complete_table = self._enhance_list_view(table=table, row_offset=row_offset)
         enhanced_table_row = complete_table[row_index]
-        use_cases = _get_use_cases(enhanced_table_row.cells)
+        use_cases = _get_use_cases(enhanced_table_row.cells, ebd_key=self._metadata.ebd_code)
         star_case_result_code = (
             enhanced_table_row.cells[len(use_cases) + self._column_index_result_code].text.strip() or None
         )
