@@ -48,7 +48,6 @@ test_packaging = [
 ]
 tests = [
     "pytest==9.0.2",
-    "pytest-datafiles==3.0.0",
     "pytest-subtests==0.15.0",
     "syrupy==5.0.0"
 ]
