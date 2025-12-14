@@ -75,6 +75,7 @@ def get_document(docx_file_path: Path) -> DocumentType:
         source_stream.close()
 
 
+# pylint:disable=too-many-branches
 def get_ebd_docx_tables(docx_file_path: Path, ebd_key: str) -> list[Table] | EbdNoTableSection:
     """
     Opens the file specified in `docx_file_path` and returns the tables that relate to the given `ebd_key`.
