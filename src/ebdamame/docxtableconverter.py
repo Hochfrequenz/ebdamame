@@ -21,7 +21,7 @@ from rebdhuhn.models.ebd_table import (
     MultiStepInstruction,
 )
 
-from ebdamame import EbdTableNotConvertibleError, StepNumberNotFoundError
+from .exceptions import EbdTableNotConvertibleError, StepNumberNotFoundError
 
 _logger = logging.getLogger(__name__)
 

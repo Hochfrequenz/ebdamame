@@ -38,10 +38,8 @@ pip install ebdamame
 import json
 from pathlib import Path
 
-import cattrs
-
-from ebdamame import TableNotFoundError, get_all_ebd_keys, get_ebd_docx_tables  # type:ignore[import]
-from ebdamame.docxtableconverter import DocxTableConverter  # type:ignore[import]
+from ebdamame import get_ebd_docx_tables
+from ebdamame.docxtableconverter import DocxTableConverter
 
 docx_file_path = Path("unittests/test_data/ebd20230629_v34.docx")
 # download this .docx File from edi-energy.de or find it in the unittests of this repository.
@@ -50,7 +48,7 @@ docx_tables = get_ebd_docx_tables(docx_file_path, ebd_key="E_0003")
 converter = DocxTableConverter(
     docx_tables,
     ebd_key="E_0003",
-    ebd_name="E_0003_AD: Bestellung der Aggregationsebene der Bilanzkreissummenzeitreihe auf Ebene der Regelzone",
+    ebd_name="E_0003_Bestellung der Aggregationsebene RZ prüfen",
     chapter="MaBiS",
     section="7.42.1"
 )
@@ -58,7 +56,7 @@ result = converter.convert_docx_tables_to_ebd_table()
 with open(Path("E_0003.json"), "w+", encoding="utf-8") as result_file:
     # the result file can be found here:
     # https://github.com/Hochfrequenz/machine-readable_entscheidungsbaumdiagramme/tree/main/FV2310
-    json.dump(cattrs.unstructure(result), result_file, ensure_ascii=False, indent=2, sort_keys=True)
+    json.dump(result.model_dump(), result_file, ensure_ascii=False, indent=2, sort_keys=True)
 ```
 
 ### Use as a CLI tool
