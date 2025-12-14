@@ -20,7 +20,7 @@ click==8.3.1
     # via ebdamame (pyproject.toml)
 colorama==0.4.6
     # via click
-idna==3.10
+idna==3.11
     # via requests
 lxml==6.0.2
     # via
@@ -37,7 +37,7 @@ pydantic-core==2.41.5
     # via pydantic
 python-docx==1.2.0
     # via ebdamame (pyproject.toml)
-rebdhuhn==0.18.1
+rebdhuhn==0.19.0
     # via ebdamame (pyproject.toml)
 requests==2.32.5
     # via rebdhuhn
@@ -52,5 +52,5 @@ typing-extensions==4.15.0
     #   typing-inspection
 typing-inspection==0.4.2
     # via pydantic
-urllib3==2.6.0
+urllib3==2.6.2
     # via requests
