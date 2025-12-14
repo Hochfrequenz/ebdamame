@@ -3,21 +3,25 @@ Contains high level functions to process .docx files
 """
 
 import gc
-import itertools
 import logging
-import re
 import sys
 from io import BytesIO
 from pathlib import Path
-from typing import Generator, Iterable, Optional, Union
 
 import docx
 from docx.document import Document as DocumentType
-from docx.oxml.table import CT_Tbl
-from docx.oxml.text.paragraph import CT_P
-from docx.table import Table, _Cell
+from docx.table import Table
 from docx.text.paragraph import Paragraph
 
+from ._docx_utils import (
+    EBD_KEY_PATTERN,
+    EBD_KEY_WITH_HEADING_PATTERN,
+    enrich_paragraphs_with_sections,
+    get_tables_and_paragraphs,
+    is_heading,
+    table_is_an_ebd_table,
+    table_is_first_ebd_table,
+)
 from .exceptions import EbdTableNotConvertibleError, StepNumberNotFoundError, TableNotFoundError
 from .models import EbdChapterInformation, EbdNoTableSection
 
@@ -33,7 +37,6 @@ __all__ = [
     "get_all_ebd_keys",
     "get_document",
     "get_ebd_docx_tables",
-    "is_heading",
 ]
 
 _logger = logging.getLogger(__name__)
@@ -72,93 +75,6 @@ def get_document(docx_file_path: Path) -> DocumentType:
         source_stream.close()
 
 
-def _get_tables_and_paragraphs(document: DocumentType) -> Generator[Union[Table, Paragraph], None, None]:
-    """
-    Yields tables and paragraphs from the given document in the order in which they occur in the document.
-    This is helpful because document.tables and document.paragraphs are de-coupled and give you no information which
-    paragraph follows which table.
-    """
-    parent_elements = document.element.body
-    for item in parent_elements.iterchildren():
-        if isinstance(item, CT_P):
-            yield Paragraph(item, document)
-        elif isinstance(item, CT_Tbl):
-            yield Table(item, document)
-        else:
-            _logger.debug("Item %s is neither Paragraph nor Table", str(item))
-
-
-_ebd_key_pattern = re.compile(r"^E_\d{4}$")
-_ebd_key_with_heading_pattern = re.compile(r"^(?P<key>E_\d{4})_?(?P<title>.*)\s*$")
-
-
-_ebd_cell_pattern = re.compile(r"^(?:ja|nein)\s*(?:Ende|\d+)$")
-"""
-any EBD table shall contain at least one cell that matches this pattern
-"""
-
-_DOCX_ARROW_CHAR = "\uf0e0"
-"""
-U+F0E0: Private Use Area character representing a right arrow in DOCX documents.
-This character is used by MS Word to render arrows (e.g., "ja → 5") in EBD tables.
-It appears in cells like "ja  5" to indicate the subsequent step number.
-"""
-
-
-def _cell_is_probably_from_an_ebd_cell(cell: _Cell) -> bool:
-    if _DOCX_ARROW_CHAR in cell.text:
-        return True
-    if cell.text in {"ja", "nein"}:
-        return True
-    if "à" in cell.text:
-        # the rightarrow in wrong encoding
-        return True
-    if _ebd_cell_pattern.match(cell.text):
-        return True
-    if cell.text.strip().startswith("Cluster:") or cell.text.startswith("Hinweis:"):
-        return True
-    return False
-
-
-def _table_is_an_ebd_table(table: Table) -> bool:
-    """
-    Returns true iff the table "looks like" an EB-Table.
-    This is to distinguish between tables that are inside the same subsection that describes an EBD but are not part
-    of the decision tree at all (e.g. in E_0406 the tables about Artikel-IDs).
-    """
-    if _table_is_first_ebd_table(table):
-        return True
-    for row in table.rows:
-        try:
-            for cell in row.cells:
-                if _cell_is_probably_from_an_ebd_cell(cell):
-                    return True
-        except IndexError:  # don't ask me why this happens; It's the internals of python-docx
-            continue
-    return False
-
-
-def _table_is_first_ebd_table(table: Table) -> bool:
-    """
-    Returns true if the first row of a table contains "Prüfende Rolle".
-    We assume that each EBD table has a header row with
-    "Prüfende Rolle" in the first column.
-    """
-    return "prüfende rolle" in table.rows[0].cells[0].text.lower()
-
-
-# pylint:disable=too-many-branches
-def is_heading(paragraph: Paragraph) -> bool:
-    """
-    Returns True if the paragraph is a heading.
-    """
-    return paragraph.style is not None and paragraph.style.style_id in {
-        "berschrift1",
-        "berschrift2",
-        "berschrift3",
-    }
-
-
 def get_ebd_docx_tables(docx_file_path: Path, ebd_key: str) -> list[Table] | EbdNoTableSection:
     """
     Opens the file specified in `docx_file_path` and returns the tables that relate to the given `ebd_key`.
@@ -181,15 +97,15 @@ def get_ebd_docx_tables(docx_file_path: Path, ebd_key: str) -> list[Table] | Ebd
     Raises:
         TableNotFoundError: If no tables related to the given `ebd_key` are found in the document.
     """
-    if _ebd_key_pattern.match(ebd_key) is None:
-        raise ValueError(f"The ebd_key '{ebd_key}' does not match {_ebd_key_pattern.pattern}")
+    if EBD_KEY_PATTERN.match(ebd_key) is None:
+        raise ValueError(f"The ebd_key '{ebd_key}' does not match {EBD_KEY_PATTERN.pattern}")
     document = get_document(docx_file_path)
 
     empty_ebd_text: str | None = None  # paragraph text if there is no ebd table
     found_table_in_subsection: bool = False
     is_inside_subsection_of_requested_table: bool = False
     tables: list[Table] = []
-    tables_and_paragraphs = _get_tables_and_paragraphs(document)
+    tables_and_paragraphs = get_tables_and_paragraphs(document)
     for table_or_paragraph in tables_and_paragraphs:
         if isinstance(table_or_paragraph, Paragraph):
             paragraph: Paragraph = table_or_paragraph
@@ -214,8 +130,8 @@ def get_ebd_docx_tables(docx_file_path: Path, ebd_key: str) -> list[Table] | Ebd
         if (
             isinstance(table_or_paragraph, Table)
             and is_inside_subsection_of_requested_table
-            and _table_is_an_ebd_table(table_or_paragraph)
-            and _table_is_first_ebd_table(table_or_paragraph)
+            and table_is_an_ebd_table(table_or_paragraph)
+            and table_is_first_ebd_table(table_or_paragraph)
         ):
             table: Table = table_or_paragraph
             tables.append(table)
@@ -228,7 +144,7 @@ def get_ebd_docx_tables(docx_file_path: Path, ebd_key: str) -> list[Table] | Ebd
                 if isinstance(next_item, Table):
                     # this is the case that the authors created multiple single tables on single adjacent pages
                     # if table_is_an_ebd_table(table):
-                    if _table_is_an_ebd_table(next_item):
+                    if table_is_an_ebd_table(next_item):
                         tables.append(next_item)
                 elif isinstance(next_item, Paragraph):
                     if next_item.text.startswith("S_") or next_item.text.startswith("E_"):
@@ -259,51 +175,6 @@ def get_ebd_docx_tables(docx_file_path: Path, ebd_key: str) -> list[Table] | Ebd
             gc.collect()
 
 
-def _enrich_paragraphs_with_sections(
-    paragraphs: Iterable[Paragraph],
-) -> Generator[tuple[Paragraph, EbdChapterInformation], None, None]:
-    """
-    Yield each paragraph + the "Kapitel" in which it is found.
-    """
-    chapter_counter = itertools.count(start=1)
-    chapter = 1
-    chapter_title: Optional[str] = None
-    section_counter = itertools.count(start=1)
-    section = 1
-    section_title: Optional[str] = None
-    subsection_counter = itertools.count(start=1)
-    subsection = 1
-    subsection_title: Optional[str] = None
-    for paragraph in paragraphs:
-        # since pyton-docx 1.1.2 there are type hints; seems like the style is not guaranteed to be not None
-        match paragraph.style.style_id:  #  type:ignore[union-attr]
-            case "berschrift1":
-                chapter = next(chapter_counter)
-                chapter_title = paragraph.text.strip()
-                section_counter = itertools.count(start=1)
-                section_title = None
-                subsection_counter = itertools.count(start=1)
-                subsection_title = None
-            case "berschrift2":
-                section = next(section_counter)
-                section_title = paragraph.text.strip()
-                subsection_counter = itertools.count(start=1)
-                subsection_title = None
-            case "berschrift3":
-                subsection = next(subsection_counter)
-                subsection_title = paragraph.text.strip()
-        location = EbdChapterInformation(
-            chapter=chapter,
-            section=section,
-            subsection=subsection,
-            chapter_title=chapter_title,
-            section_title=section_title,
-            subsection_title=subsection_title,
-        )
-        _logger.debug("Handling Paragraph %i.%i.%i", chapter, section, subsection)
-        yield paragraph, location
-
-
 def get_all_ebd_keys(docx_file_path: Path) -> dict[str, tuple[str, EbdChapterInformation]]:
     """
     Extract all EBD keys from the given file.
@@ -312,8 +183,8 @@ def get_all_ebd_keys(docx_file_path: Path) -> dict[str, tuple[str, EbdChapterInf
     """
     document = get_document(docx_file_path)
     result: dict[str, tuple[str, EbdChapterInformation]] = {}
-    for paragraph, ebd_kapitel in _enrich_paragraphs_with_sections(document.paragraphs):
-        match = _ebd_key_with_heading_pattern.match(paragraph.text)
+    for paragraph, ebd_kapitel in enrich_paragraphs_with_sections(document.paragraphs):
+        match = EBD_KEY_WITH_HEADING_PATTERN.match(paragraph.text)
         if match is None:
             contains_ebd_number = paragraph.text.lstrip().startswith("E_")
             if contains_ebd_number:
