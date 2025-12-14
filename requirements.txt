@@ -20,7 +20,7 @@ click==8.3.1
     # via ebdamame (pyproject.toml)
 colorama==0.4.6
     # via click
-idna==3.10
+idna==3.11
     # via requests
 lxml==6.0.2
     # via
