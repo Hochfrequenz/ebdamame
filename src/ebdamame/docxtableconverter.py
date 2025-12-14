@@ -339,9 +339,7 @@ class DocxTableConverter:
         enhanced_table_row = complete_table[row_index]
         use_cases = _get_use_cases(enhanced_table_row.cells, ebd_key=self._metadata.ebd_code)
         offset = len(use_cases)
-        star_case_result_code = (
-            enhanced_table_row.cells[offset + self._column_index_result_code].text.strip() or None
-        )
+        star_case_result_code = enhanced_table_row.cells[offset + self._column_index_result_code].text.strip() or None
         star_case_note = enhanced_table_row.cells[offset + self._column_index_note].text.strip() or None
         while row_index < len(complete_table):
             enhanced_table_row = complete_table[row_index]
