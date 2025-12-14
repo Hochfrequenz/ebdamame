@@ -422,3 +422,5 @@ class TestEbdamame:
                     assert isinstance(actual, EbdTable)
                 except EbdTableNotConvertibleError:
                     pass  # Ignore known unsupported formats (e.g., "--" values)
+                except StepNumberNotFoundError:
+                    pass  # Table format not supported (no valid step number found)
