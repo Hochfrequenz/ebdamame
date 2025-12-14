@@ -259,6 +259,7 @@ class DocxTableConverter:
         The results are written into rows, sub_rows and multi_step_instructions. Those will be modified.
         """
         use_cases: list[str] = []
+        offset: int = 0
         last_row_position: Optional[_EbdSubRowPosition] = None
         # todo: https://github.com/Hochfrequenz/ebdamame/issues/318 # pylint:disable=fixme
         description: str = ""
@@ -278,11 +279,12 @@ class DocxTableConverter:
 
                 last_row_position = _EbdSubRowPosition.UPPER
                 use_cases = _get_use_cases(enhanced_table_row.cells, ebd_key=self._metadata.ebd_code)
+                offset = len(use_cases)
                 sub_rows = []  # clear list every second entry
-                step_number = enhanced_table_row.cells[len(use_cases) + self._column_index_step_number].text.strip()
-                description = enhanced_table_row.cells[len(use_cases) + self._column_index_description].text.strip()
+                step_number = enhanced_table_row.cells[offset + self._column_index_step_number].text.strip()
+                description = enhanced_table_row.cells[offset + self._column_index_description].text.strip()
             boolean_outcome, subsequent_step_number = _read_subsequent_step_cell(
-                enhanced_table_row.cells[len(use_cases) + self._column_index_check_result]
+                enhanced_table_row.cells[offset + self._column_index_check_result]
             )
             if step_number.endswith("*"):  # pylint:disable=possibly-used-before-assignment
                 # step number is defined and set at this point, because the enhanced list view always starts with UPPER
@@ -290,9 +292,8 @@ class DocxTableConverter:
                 break
             sub_row = EbdTableSubRow(
                 check_result=EbdCheckResult(subsequent_step_number=subsequent_step_number, result=boolean_outcome),
-                result_code=enhanced_table_row.cells[len(use_cases) + self._column_index_result_code].text.strip()
-                or None,
-                note=enhanced_table_row.cells[len(use_cases) + self._column_index_note].text.strip() or None,
+                result_code=enhanced_table_row.cells[offset + self._column_index_result_code].text.strip() or None,
+                note=enhanced_table_row.cells[offset + self._column_index_note].text.strip() or None,
             )
             _logger.debug(
                 "Successfully read sub row %s/%s", sub_row.result_code or subsequent_step_number, boolean_outcome
@@ -334,20 +335,20 @@ class DocxTableConverter:
         with several instructions. Those instructions will be split in individual steps.
         As above, the results are written into rows, sub_rows and multi_step_instructions. Those will be modified.
         """
-        use_cases: list[str] = []
         complete_table = self._enhance_list_view(table=table, row_offset=row_offset)
         enhanced_table_row = complete_table[row_index]
         use_cases = _get_use_cases(enhanced_table_row.cells, ebd_key=self._metadata.ebd_code)
+        offset = len(use_cases)
         star_case_result_code = (
-            enhanced_table_row.cells[len(use_cases) + self._column_index_result_code].text.strip() or None
+            enhanced_table_row.cells[offset + self._column_index_result_code].text.strip() or None
         )
-        star_case_note = enhanced_table_row.cells[len(use_cases) + self._column_index_note].text.strip() or None
+        star_case_note = enhanced_table_row.cells[offset + self._column_index_note].text.strip() or None
         while row_index < len(complete_table):
             enhanced_table_row = complete_table[row_index]
             step_number = str(int(last(rows).step_number) + 1)
-            description = enhanced_table_row.cells[len(use_cases) + self._column_index_description].text.strip()
+            description = enhanced_table_row.cells[offset + self._column_index_description].text.strip()
             boolean_outcome, subsequent_step_number = _read_subsequent_step_cell(
-                enhanced_table_row.cells[len(use_cases) + self._column_index_check_result]
+                enhanced_table_row.cells[offset + self._column_index_check_result]
             )
 
             this_is_the_last_row = row_index == len(complete_table) - 1

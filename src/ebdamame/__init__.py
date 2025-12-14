@@ -102,7 +102,7 @@ def get_ebd_docx_tables(docx_file_path: Path, ebd_key: str) -> list[Table] | Ebd
         raise ValueError(f"The ebd_key '{ebd_key}' does not match {EBD_KEY_PATTERN.pattern}")
     document = get_document(docx_file_path)
 
-    empty_ebd_text: str | None = None  # paragraph text if there is no ebd table
+    empty_ebd_text_parts: list[str] = []  # paragraph text parts if there is no ebd table
     found_table_in_subsection: bool = False
     is_inside_subsection_of_requested_table: bool = False
     tables: list[Table] = []
@@ -118,11 +118,7 @@ def get_ebd_docx_tables(docx_file_path: Path, ebd_key: str) -> list[Table] | Ebd
                 _logger.warning("No EBD table found in subsection for: '%s'", ebd_key)
                 break
             if is_inside_subsection_of_requested_table and paragraph.text.strip() != "":
-                if empty_ebd_text is None:
-                    # the first text paragraph after we found the correct section containing the ebd key
-                    empty_ebd_text = paragraph.text.strip()
-                else:
-                    empty_ebd_text += ("\n") + paragraph.text.strip()
+                empty_ebd_text_parts.append(paragraph.text.strip())
             is_inside_subsection_of_requested_table = (
                 is_ebd_heading_of_requested_ebd_key or is_inside_subsection_of_requested_table
             )
@@ -162,12 +158,12 @@ def get_ebd_docx_tables(docx_file_path: Path, ebd_key: str) -> list[Table] | Ebd
     if not any(tables):
         if not is_inside_subsection_of_requested_table:
             raise TableNotFoundError(ebd_key=ebd_key)
-        if empty_ebd_text is None:
+        if not empty_ebd_text_parts:
             if found_table_in_subsection:
                 # probably there is an error while scraping the tables
                 raise TableNotFoundError(ebd_key=ebd_key)
             return EbdNoTableSection(ebd_key=ebd_key, remark="")
-        return EbdNoTableSection(ebd_key=ebd_key, remark=empty_ebd_text.strip())
+        return EbdNoTableSection(ebd_key=ebd_key, remark="\n".join(empty_ebd_text_parts))
     try:
         return tables
     finally:
