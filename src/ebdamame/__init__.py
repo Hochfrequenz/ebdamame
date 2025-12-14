@@ -97,9 +97,16 @@ _ebd_cell_pattern = re.compile(r"^(?:ja|nein)\s*(?:Ende|\d+)$")
 any EBD table shall contain at least one cell that matches this pattern
 """
 
+_DOCX_ARROW_CHAR = "\uf0e0"
+"""
+U+F0E0: Private Use Area character representing a right arrow in DOCX documents.
+This character is used by MS Word to render arrows (e.g., "ja → 5") in EBD tables.
+It appears in cells like "ja  5" to indicate the subsequent step number.
+"""
+
 
 def _cell_is_probably_from_an_ebd_cell(cell: _Cell) -> bool:
-    if "" in cell.text:
+    if _DOCX_ARROW_CHAR in cell.text:
         return True
     if cell.text in {"ja", "nein"}:
         return True
