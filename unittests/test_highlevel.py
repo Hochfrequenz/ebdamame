@@ -13,8 +13,8 @@ from ebdamame import (
     TableNotFoundError,
     get_all_ebd_keys,
     get_document,
-    get_ebd_docx_tables,
     get_ebd_document_release_information,
+    get_ebd_docx_tables,
 )
 from ebdamame.docxtableconverter import DocxTableConverter
 
