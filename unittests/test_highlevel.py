@@ -434,48 +434,60 @@ class TestEbdDocumentReleaseInformation:
     """
 
     @pytest.mark.parametrize(
-        "path, expected_version, expected_release_date, expected_original_release_date",
+        "path, expected",
         [
             pytest.param(
                 EBD_2022_11_28,
-                "3.2",
-                date(2022, 11, 28),
-                date(2022, 4, 29),
+                EbdDocumentReleaseInformation(
+                    version="3.2",
+                    release_date=date(2022, 11, 28),
+                    original_release_date=date(2022, 4, 29),
+                ),
                 id="v3.2 with correction (Ursprüngliches Publikationsdatum)",
             ),
             pytest.param(
                 EBD_2023_06_19_V33,
-                "3.3",
-                date(2023, 6, 19),
-                date(2022, 9, 30),
+                EbdDocumentReleaseInformation(
+                    version="3.3",
+                    release_date=date(2023, 6, 19),
+                    original_release_date=date(2022, 9, 30),
+                ),
                 id="v3.3 with correction (Ursprüngliches Publikationsdatum)",
             ),
             pytest.param(
                 EBD_2023_06_29_V34,
-                "3.4",
-                date(2023, 6, 29),
-                date(2023, 3, 31),
+                EbdDocumentReleaseInformation(
+                    version="3.4",
+                    release_date=date(2023, 6, 29),
+                    original_release_date=date(2023, 3, 31),
+                ),
                 id="v3.4 with correction (Ursprüngliches Publikationsdatum)",
             ),
             pytest.param(
                 EBD_2024_04_03_V35,
-                "3.5",
-                date(2024, 7, 31),
-                date(2023, 10, 4),
+                EbdDocumentReleaseInformation(
+                    version="3.5",
+                    release_date=date(2024, 7, 31),
+                    original_release_date=date(2023, 10, 4),
+                ),
                 id="v3.5 with correction (Ursprüngliches Publikationsdatum)",
             ),
             pytest.param(
                 EBD_2025_04_04_V40B,
-                "4.0b",
-                date(2024, 10, 1),
-                date(2024, 10, 1),
+                EbdDocumentReleaseInformation(
+                    version="4.0b",
+                    release_date=date(2024, 10, 1),
+                    original_release_date=date(2024, 10, 1),
+                ),
                 id="v4.0b fresh release (Publikationsdatum equals Stand)",
             ),
             pytest.param(
                 EBD_V42,
-                "4.2",
-                date(2025, 12, 11),
-                date(2025, 10, 1),
+                EbdDocumentReleaseInformation(
+                    version="4.2",
+                    release_date=date(2025, 12, 11),
+                    original_release_date=date(2025, 10, 1),
+                ),
                 id="v4.2 with correction",
             ),
         ],
@@ -483,18 +495,13 @@ class TestEbdDocumentReleaseInformation:
     def test_get_ebd_document_release_information(
         self,
         path: Path,
-        expected_version: str,
-        expected_release_date: date,
-        expected_original_release_date: date,
+        expected: EbdDocumentReleaseInformation,
     ):
         """Test extraction of release information from various EBD document versions."""
         document = get_document(path)
         actual = get_ebd_document_release_information(document)
 
-        assert actual is not None
-        assert actual.version == expected_version
-        assert actual.release_date == expected_release_date
-        assert actual.original_release_date == expected_original_release_date
+        assert actual == expected
 
     def test_release_information_passed_to_converter(self):
         """Test that release information is correctly passed through DocxTableConverter to EbdTable."""
