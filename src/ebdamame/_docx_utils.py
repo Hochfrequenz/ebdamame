@@ -11,6 +11,7 @@ from datetime import date
 from typing import Generator, Iterable, Optional, Union
 
 from docx.document import Document as DocumentType
+from docx.oxml.ns import qn
 from docx.oxml.table import CT_Tbl
 from docx.oxml.text.paragraph import CT_P
 from docx.table import Table, _Cell
@@ -192,24 +193,52 @@ def _get_table_cell_texts(table_element: CT_Tbl) -> list[list[str]]:
 
     Returns a list of rows, where each row is a list of cell text strings.
     """
-    from docx.oxml.ns import qn
-
     rows_data: list[list[str]] = []
-    rows = table_element.findall(qn("w:tr"))
-    for row in rows:
+    for row in table_element.findall(qn("w:tr")):
         # Use iter to find ALL w:tc elements recursively, including those inside w:sdt elements
         # This is needed because the title page table uses SDT elements for dropdowns
-        cells = list(row.iter(qn("w:tc")))
-        cell_texts: list[str] = []
-        for cell in cells:
-            # Collect all text elements within the cell
-            texts: list[str] = []
-            for t_elem in cell.iter(qn("w:t")):
-                if t_elem.text:
-                    texts.append(t_elem.text)
-            cell_texts.append("".join(texts))
+        cell_texts = [
+            "".join(t_elem.text for t_elem in cell.iter(qn("w:t")) if t_elem.text) for cell in row.iter(qn("w:tc"))
+        ]
         rows_data.append(cell_texts)
     return rows_data
+
+
+def _extract_stand_date_from_body(body) -> Optional[date]:  # type: ignore[no-untyped-def]
+    """Extract the 'Stand:' date from the document body."""
+    for para_elem in body.iter(qn("w:p")):
+        para_text = "".join(t_elem.text for t_elem in para_elem.iter(qn("w:t")) if t_elem.text).strip()
+        match = _STAND_PATTERN.match(para_text)
+        if match:
+            day, month, year = int(match.group("day")), int(match.group("month")), int(match.group("year"))
+            try:
+                result = date(year, month, day)
+                _logger.debug("Found Stand date: %s", result)
+                return result
+            except ValueError:
+                _logger.warning("Invalid Stand date values: day=%d, month=%d, year=%d", day, month, year)
+                return None
+    return None
+
+
+def _extract_version_info_from_body(body) -> tuple[Optional[str], Optional[date]]:  # type: ignore[no-untyped-def]
+    """Extract version and original release date from the metadata table in the document body."""
+    for item in body.iterchildren():
+        if not isinstance(item, CT_Tbl):
+            continue
+        rows_data = _get_table_cell_texts(item)
+        if len(rows_data) < 2 or len(rows_data[0]) < 2:
+            continue
+        if rows_data[0][0].strip() != "Version:":
+            continue
+        version = rows_data[0][1].strip()
+        _logger.debug("Found Version: %s", version)
+        original_release_date = None
+        if len(rows_data[1]) >= 2 and "Publikationsdatum" in rows_data[1][0].strip():
+            original_release_date = _parse_german_date(rows_data[1][1].strip())
+            _logger.debug("Found original release date: %s", original_release_date)
+        return version, original_release_date
+    return None, None
 
 
 def get_ebd_document_release_information(document: DocumentType) -> Optional[EbdDocumentReleaseInformation]:
@@ -228,57 +257,9 @@ def get_ebd_document_release_information(document: DocumentType) -> Optional[Ebd
         or None if the information could not be extracted (logs a warning in this case).
     """
     try:
-        from docx.oxml.ns import qn
-
-        release_date: Optional[date] = None
-        version: Optional[str] = None
-        original_release_date: Optional[date] = None
-
         body = document.element.body
-
-        # Search for 'Stand:' paragraph in the document body
-        # We iterate over ALL paragraphs (including nested in SDT elements) because the title page
-        # uses structured document tags that wrap some paragraphs
-        for para_elem in body.iter(qn("w:p")):
-            # Collect all text from this paragraph
-            texts: list[str] = []
-            for t_elem in para_elem.iter(qn("w:t")):
-                if t_elem.text:
-                    texts.append(t_elem.text)
-            para_text = "".join(texts).strip()
-
-            match = _STAND_PATTERN.match(para_text)
-            if match:
-                day = int(match.group("day"))
-                month = int(match.group("month"))
-                year = int(match.group("year"))
-                try:
-                    release_date = date(year, month, day)
-                    _logger.debug("Found Stand date: %s", release_date)
-                except ValueError:
-                    _logger.warning("Invalid Stand date values: day=%d, month=%d, year=%d", day, month, year)
-                break
-
-        # Find the first table which contains Version and Publikationsdatum
-        # We use low-level XML API because python-docx Table class has issues with merged cells/SDT
-        for item in body.iterchildren():
-            if isinstance(item, CT_Tbl):
-                rows_data = _get_table_cell_texts(item)
-                # Check if this looks like the title page metadata table
-                # Row 0 should have 'Version:' in the first cell
-                if len(rows_data) >= 2 and len(rows_data[0]) >= 2:
-                    if rows_data[0][0].strip() == "Version:":
-                        version = rows_data[0][1].strip()
-                        _logger.debug("Found Version: %s", version)
-
-                        # Row 1 should have Publikationsdatum or Ursprüngliches Publikationsdatum
-                        if len(rows_data[1]) >= 2:
-                            label = rows_data[1][0].strip()
-                            date_str = rows_data[1][1].strip()
-                            if "Publikationsdatum" in label:
-                                original_release_date = _parse_german_date(date_str)
-                                _logger.debug("Found original release date: %s", original_release_date)
-                        break
+        release_date = _extract_stand_date_from_body(body)
+        version, original_release_date = _extract_version_info_from_body(body)
 
         if version is None:
             _logger.warning("Could not find Version information in the document title page")
