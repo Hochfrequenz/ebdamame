@@ -12,6 +12,7 @@ from docx.table import Table, _Cell, _Row
 from more_itertools import first, first_true, last
 from pydantic import BaseModel, ConfigDict
 from rebdhuhn.models.ebd_table import (
+    STEP_NUMBER_REGEX,
     EbdCheckResult,
     EbdDocumentReleaseInformation,
     EbdTable,
@@ -19,7 +20,6 @@ from rebdhuhn.models.ebd_table import (
     EbdTableRow,
     EbdTableSubRow,
     MultiStepInstruction,
-    STEP_NUMBER_REGEX,
 )
 
 from ._docx_utils import get_ebd_document_release_information_from_body
