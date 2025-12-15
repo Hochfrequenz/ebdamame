@@ -163,14 +163,19 @@ _DATE_PATTERN = re.compile(r"^(?P<day>\d{2})\.(?P<month>\d{2})\.(?P<year>\d{4})$
 def _parse_german_date(date_str: str) -> Optional[date]:
     """
     Parse a German date string (DD.MM.YYYY) into a date object.
-    Returns None if the string doesn't match the expected format.
+    Returns None if the string doesn't match the expected format or contains invalid date values.
     """
     match = _DATE_PATTERN.match(date_str.strip())
     if match:
         day = int(match.group("day"))
         month = int(match.group("month"))
         year = int(match.group("year"))
-        return date(year, month, day)
+        try:
+            return date(year, month, day)
+        except ValueError:
+            # Invalid date values (e.g., February 30)
+            _logger.warning("Invalid date values in '%s': day=%d, month=%d, year=%d", date_str, day, month, year)
+            return None
     return None
 
 
