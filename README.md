@@ -23,6 +23,7 @@ The website edi-energy.de, as always, only provides you with PDF or Word files i
 The package `ebdamame` scrapes the `.docx` files and returns data in a model defined in the "sister" package [`rebdhuhn`](https://pypi.org/project/rebdhuhn) (formerly known as `ebdtable2graph`).
 
 Once you scraped the data (using this package) you can plot it with [`rebdhuhn`](https://pypi.org/project/rebdhuhn).
+Both packages together form the [`ebd_toolchain`](https://github.com/Hochfrequenz/ebd_toolchain/).
 
 ## How to use the package
 
