@@ -252,8 +252,11 @@ def get_ebd_document_release_information(document: DocumentType) -> Optional[Ebd
                 day = int(match.group("day"))
                 month = int(match.group("month"))
                 year = int(match.group("year"))
-                release_date = date(year, month, day)
-                _logger.debug("Found Stand date: %s", release_date)
+                try:
+                    release_date = date(year, month, day)
+                    _logger.debug("Found Stand date: %s", release_date)
+                except ValueError:
+                    _logger.warning("Invalid Stand date values: day=%d, month=%d, year=%d", day, month, year)
                 break
 
         # Find the first table which contains Version and Publikationsdatum
