@@ -12,7 +12,6 @@ from docx.table import Table, _Cell, _Row
 from more_itertools import first, first_true, last
 from pydantic import BaseModel, ConfigDict
 from rebdhuhn.models.ebd_table import (
-    _STEP_NUMBER_REGEX,
     EbdCheckResult,
     EbdDocumentReleaseInformation,
     EbdTable,
@@ -20,6 +19,7 @@ from rebdhuhn.models.ebd_table import (
     EbdTableRow,
     EbdTableSubRow,
     MultiStepInstruction,
+    STEP_NUMBER_REGEX,
 )
 
 from .exceptions import EbdTableNotConvertibleError, StepNumberNotFoundError
