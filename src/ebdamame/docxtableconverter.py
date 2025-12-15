@@ -14,6 +14,7 @@ from pydantic import BaseModel, ConfigDict
 from rebdhuhn.models.ebd_table import (
     _STEP_NUMBER_REGEX,
     EbdCheckResult,
+    EbdDocumentReleaseInformation,
     EbdTable,
     EbdTableMetaData,
     EbdTableRow,
@@ -164,11 +165,20 @@ class DocxTableConverter:
     converts docx tables to EbdTables
     """
 
-    def __init__(self, docx_tables: list[Table], ebd_key: str, chapter: str, section: str, ebd_name: str):
+    def __init__(
+        self,
+        docx_tables: list[Table],
+        ebd_key: str,
+        chapter: str,
+        section: str,
+        ebd_name: str,
+        release_information: Optional[EbdDocumentReleaseInformation] = None,
+    ):
         """
         the constructor initializes the instance and reads some metadata from the (first) table header
         """
         self._docx_tables = docx_tables
+        self._release_information = release_information
         self._column_index_step_number: int
         self._column_index_description: int
         self._column_index_check_result: int
@@ -208,7 +218,12 @@ class DocxTableConverter:
         # if not self._column_index_step_number:
         # self._column_index_step_number = 0
         self._metadata = EbdTableMetaData(
-            ebd_code=ebd_key, ebd_name=ebd_name, chapter=chapter, section=section, role=role
+            ebd_code=ebd_key,
+            ebd_name=ebd_name,
+            chapter=chapter,
+            section=section,
+            role=role,
+            release_information=self._release_information,
         )
 
     @staticmethod
