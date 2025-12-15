@@ -12,7 +12,7 @@ from docx.table import Table, _Cell, _Row
 from more_itertools import first, first_true, last
 from pydantic import BaseModel, ConfigDict
 from rebdhuhn.models.ebd_table import (
-    _STEP_NUMBER_REGEX,
+    STEP_NUMBER_REGEX,
     EbdCheckResult,
     EbdDocumentReleaseInformation,
     EbdTable,
@@ -50,7 +50,7 @@ _subsequent_step_pattern = re.compile(
 )
 # We look for private use character (U+F0E0) to avoid encoding issues which corresponds to "->" in the docx documents.
 # We allow the character "-" in the middle part as there are currently typos in the BDEW docs.
-_step_number_pattern = re.compile(_STEP_NUMBER_REGEX)
+_step_number_pattern = re.compile(STEP_NUMBER_REGEX)
 
 
 def _get_index_of_first_column_with_step_number(cells: list[_Cell], ebd_key: str) -> int:
