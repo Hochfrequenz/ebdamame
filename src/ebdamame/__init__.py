@@ -17,6 +17,7 @@ from ._docx_utils import (
     EBD_KEY_PATTERN,
     EBD_KEY_WITH_HEADING_PATTERN,
     enrich_paragraphs_with_sections,
+    get_ebd_document_release_information,
     get_tables_and_paragraphs,
     is_heading,
     table_is_an_ebd_table,
@@ -37,6 +38,7 @@ __all__ = [
     "get_all_ebd_keys",
     "get_document",
     "get_ebd_docx_tables",
+    "get_ebd_document_release_information",
 ]
 
 _logger = logging.getLogger(__name__)

@@ -7,6 +7,7 @@ This module is internal - do not import directly from external code.
 import itertools
 import logging
 import re
+from datetime import date
 from typing import Generator, Iterable, Optional, Union
 
 from docx.document import Document as DocumentType
@@ -14,6 +15,7 @@ from docx.oxml.table import CT_Tbl
 from docx.oxml.text.paragraph import CT_P
 from docx.table import Table, _Cell
 from docx.text.paragraph import Paragraph
+from rebdhuhn.models.ebd_table import EbdDocumentReleaseInformation
 
 from .models import EbdChapterInformation
 
@@ -149,3 +151,136 @@ def enrich_paragraphs_with_sections(
         )
         _logger.debug("Handling Paragraph %i.%i.%i", chapter, section, subsection)
         yield paragraph, location
+
+
+_STAND_PATTERN = re.compile(r"^Stand:\s*(?P<day>\d{2})\.(?P<month>\d{2})\.(?P<year>\d{4})\s*$")
+"""Pattern to match 'Stand: DD.MM.YYYY' paragraphs on the title page."""
+
+_DATE_PATTERN = re.compile(r"^(?P<day>\d{2})\.(?P<month>\d{2})\.(?P<year>\d{4})$")
+"""Pattern to match German date format DD.MM.YYYY."""
+
+
+def _parse_german_date(date_str: str) -> Optional[date]:
+    """
+    Parse a German date string (DD.MM.YYYY) into a date object.
+    Returns None if the string doesn't match the expected format.
+    """
+    match = _DATE_PATTERN.match(date_str.strip())
+    if match:
+        day = int(match.group("day"))
+        month = int(match.group("month"))
+        year = int(match.group("year"))
+        return date(year, month, day)
+    return None
+
+
+def _get_table_cell_texts(table_element: CT_Tbl) -> list[list[str]]:
+    """
+    Extract cell texts from a table element using low-level XML API.
+
+    The python-docx Table class doesn't handle merged cells or structured document tags (SDT)
+    correctly in all cases, so we use the underlying lxml API with recursive searches to
+    reliably extract cell contents.
+
+    Note: We use iter() with the namespace-qualified tag to find all descendant elements,
+    which correctly handles cells nested inside SDT elements (common in Word's title pages).
+
+    Returns a list of rows, where each row is a list of cell text strings.
+    """
+    from docx.oxml.ns import qn
+
+    rows_data: list[list[str]] = []
+    rows = table_element.findall(qn("w:tr"))
+    for row in rows:
+        # Use iter to find ALL w:tc elements recursively, including those inside w:sdt elements
+        # This is needed because the title page table uses SDT elements for dropdowns
+        cells = list(row.iter(qn("w:tc")))
+        cell_texts: list[str] = []
+        for cell in cells:
+            # Collect all text elements within the cell
+            texts: list[str] = []
+            for t_elem in cell.iter(qn("w:t")):
+                if t_elem.text:
+                    texts.append(t_elem.text)
+            cell_texts.append("".join(texts))
+        rows_data.append(cell_texts)
+    return rows_data
+
+
+def get_ebd_document_release_information(document: DocumentType) -> Optional[EbdDocumentReleaseInformation]:
+    """
+    Extract release information from the title page of an EBD document.
+
+    The title page of EDI@Energy EBD documents contains:
+    - A 'Stand: DD.MM.YYYY' paragraph indicating the current release/correction date
+    - A table with 'Version:' and either 'Publikationsdatum:' or 'Ursprüngliches Publikationsdatum:'
+
+    Args:
+        document: A python-docx Document object
+
+    Returns:
+        EbdDocumentReleaseInformation with version and dates extracted from the title page,
+        or None if the information could not be extracted (logs a warning in this case).
+    """
+    try:
+        from docx.oxml.ns import qn
+
+        release_date: Optional[date] = None
+        version: Optional[str] = None
+        original_release_date: Optional[date] = None
+
+        body = document.element.body
+
+        # Search for 'Stand:' paragraph in the document body
+        # We iterate over ALL paragraphs (including nested in SDT elements) because the title page
+        # uses structured document tags that wrap some paragraphs
+        for para_elem in body.iter(qn("w:p")):
+            # Collect all text from this paragraph
+            texts: list[str] = []
+            for t_elem in para_elem.iter(qn("w:t")):
+                if t_elem.text:
+                    texts.append(t_elem.text)
+            para_text = "".join(texts).strip()
+
+            match = _STAND_PATTERN.match(para_text)
+            if match:
+                day = int(match.group("day"))
+                month = int(match.group("month"))
+                year = int(match.group("year"))
+                release_date = date(year, month, day)
+                _logger.debug("Found Stand date: %s", release_date)
+                break
+
+        # Find the first table which contains Version and Publikationsdatum
+        # We use low-level XML API because python-docx Table class has issues with merged cells/SDT
+        for item in body.iterchildren():
+            if isinstance(item, CT_Tbl):
+                rows_data = _get_table_cell_texts(item)
+                # Check if this looks like the title page metadata table
+                # Row 0 should have 'Version:' in the first cell
+                if len(rows_data) >= 2 and len(rows_data[0]) >= 2:
+                    if rows_data[0][0].strip() == "Version:":
+                        version = rows_data[0][1].strip()
+                        _logger.debug("Found Version: %s", version)
+
+                        # Row 1 should have Publikationsdatum or Ursprüngliches Publikationsdatum
+                        if len(rows_data[1]) >= 2:
+                            label = rows_data[1][0].strip()
+                            date_str = rows_data[1][1].strip()
+                            if "Publikationsdatum" in label:
+                                original_release_date = _parse_german_date(date_str)
+                                _logger.debug("Found original release date: %s", original_release_date)
+                        break
+
+        if version is None:
+            _logger.warning("Could not find Version information in the document title page")
+            return None
+
+        return EbdDocumentReleaseInformation(
+            version=version,
+            release_date=release_date,
+            original_release_date=original_release_date,
+        )
+    except Exception as e:  # pylint: disable=broad-exception-caught
+        _logger.warning("Failed to extract release information from document: %s", e)
+        return None

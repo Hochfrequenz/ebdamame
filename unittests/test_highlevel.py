@@ -1,8 +1,9 @@
+from datetime import date
 from pathlib import Path
 
 import pytest  # type:ignore[import]
 from docx.table import Table
-from rebdhuhn.models.ebd_table import EbdTable, EbdTableMetaData
+from rebdhuhn.models.ebd_table import EbdDocumentReleaseInformation, EbdTable, EbdTableMetaData
 
 from ebdamame import (
     EbdChapterInformation,
@@ -13,6 +14,7 @@ from ebdamame import (
     get_all_ebd_keys,
     get_document,
     get_ebd_docx_tables,
+    get_ebd_document_release_information,
 )
 from ebdamame.docxtableconverter import DocxTableConverter
 
@@ -424,3 +426,98 @@ class TestEbdamame:
                     pass  # Ignore known unsupported formats (e.g., "--" values)
                 except StepNumberNotFoundError:
                     pass  # Table format not supported (no valid step number found)
+
+
+class TestEbdDocumentReleaseInformation:
+    """
+    Tests for extracting release information from the title page of EBD documents.
+    """
+
+    @pytest.mark.parametrize(
+        "path, expected_version, expected_release_date, expected_original_release_date",
+        [
+            pytest.param(
+                EBD_2022_11_28,
+                "3.2",
+                date(2022, 11, 28),
+                date(2022, 4, 29),
+                id="v3.2 with correction (Ursprüngliches Publikationsdatum)",
+            ),
+            pytest.param(
+                EBD_2023_06_19_V33,
+                "3.3",
+                date(2023, 6, 19),
+                date(2022, 9, 30),
+                id="v3.3 with correction (Ursprüngliches Publikationsdatum)",
+            ),
+            pytest.param(
+                EBD_2023_06_29_V34,
+                "3.4",
+                date(2023, 6, 29),
+                date(2023, 3, 31),
+                id="v3.4 with correction (Ursprüngliches Publikationsdatum)",
+            ),
+            pytest.param(
+                EBD_2024_04_03_V35,
+                "3.5",
+                date(2024, 7, 31),
+                date(2023, 10, 4),
+                id="v3.5 with correction (Ursprüngliches Publikationsdatum)",
+            ),
+            pytest.param(
+                EBD_2025_04_04_V40B,
+                "4.0b",
+                date(2024, 10, 1),
+                date(2024, 10, 1),
+                id="v4.0b fresh release (Publikationsdatum equals Stand)",
+            ),
+            pytest.param(
+                EBD_V42,
+                "4.2",
+                date(2025, 12, 11),
+                date(2025, 10, 1),
+                id="v4.2 with correction",
+            ),
+        ],
+    )
+    def test_get_ebd_document_release_information(
+        self,
+        path: Path,
+        expected_version: str,
+        expected_release_date: date,
+        expected_original_release_date: date,
+    ):
+        """Test extraction of release information from various EBD document versions."""
+        document = get_document(path)
+        actual = get_ebd_document_release_information(document)
+
+        assert actual is not None
+        assert actual.version == expected_version
+        assert actual.release_date == expected_release_date
+        assert actual.original_release_date == expected_original_release_date
+
+    def test_release_information_passed_to_converter(self):
+        """Test that release information is correctly passed through DocxTableConverter to EbdTable."""
+        document = get_document(EBD_2025_04_04_V40B)
+        release_info = get_ebd_document_release_information(document)
+
+        assert release_info is not None
+
+        ebd_key = "E_0003"
+        docx_tables = get_ebd_docx_tables(EBD_2025_04_04_V40B, ebd_key=ebd_key)
+        assert not isinstance(docx_tables, EbdNoTableSection)
+
+        converter = DocxTableConverter(
+            docx_tables,
+            ebd_key=ebd_key,
+            chapter="MaBiS",
+            section="7.42.1",
+            ebd_name="E_0003_Bestellung der Aggregationsebene RZ prüfen",
+            release_information=release_info,
+        )
+        ebd_table = converter.convert_docx_tables_to_ebd_table()
+
+        assert ebd_table.metadata.release_information is not None
+        assert ebd_table.metadata.release_information.version == "4.0b"
+        assert ebd_table.metadata.release_information.release_date == date(2024, 10, 1)
+        assert ebd_table.metadata.release_information.original_release_date == date(2024, 10, 1)
