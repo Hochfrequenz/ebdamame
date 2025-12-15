@@ -11,6 +11,7 @@ from datetime import date
 from typing import Generator, Iterable, Optional, Union
 
 from docx.document import Document as DocumentType
+from docx.oxml.document import CT_Body
 from docx.oxml.ns import qn
 from docx.oxml.table import CT_Tbl
 from docx.oxml.text.paragraph import CT_P
@@ -204,7 +205,7 @@ def _get_table_cell_texts(table_element: CT_Tbl) -> list[list[str]]:
     return rows_data
 
 
-def _extract_stand_date_from_body(body) -> Optional[date]:  # type: ignore[no-untyped-def]
+def _extract_stand_date_from_body(body: CT_Body) -> Optional[date]:
     """Extract the 'Stand:' date from the document body."""
     for para_elem in body.iter(qn("w:p")):
         para_text = "".join(t_elem.text for t_elem in para_elem.iter(qn("w:t")) if t_elem.text).strip()
@@ -221,7 +222,7 @@ def _extract_stand_date_from_body(body) -> Optional[date]:  # type: ignore[no-un
     return None
 
 
-def _extract_version_info_from_body(body) -> tuple[Optional[str], Optional[date]]:  # type: ignore[no-untyped-def]
+def _extract_version_info_from_body(body: CT_Body) -> tuple[Optional[str], Optional[date]]:
     """Extract version and original release date from the metadata table in the document body."""
     for item in body.iterchildren():
         if not isinstance(item, CT_Tbl):
@@ -256,8 +257,27 @@ def get_ebd_document_release_information(document: DocumentType) -> Optional[Ebd
         EbdDocumentReleaseInformation with version and dates extracted from the title page,
         or None if the information could not be extracted (logs a warning in this case).
     """
+    return get_ebd_document_release_information_from_body(document.element.body)
+
+
+def get_ebd_document_release_information_from_body(
+    body: CT_Body,
+) -> Optional[EbdDocumentReleaseInformation]:
+    """
+    Extract release information from the body element of an EBD document.
+
+    This is an internal function that allows extracting release information
+    from a document body element directly, which is useful when you only have
+    access to tables (which reference their parent document via table.part.element.body).
+
+    Args:
+        body: The document body element (CT_Body)
+
+    Returns:
+        EbdDocumentReleaseInformation with version and dates extracted from the title page,
+        or None if the information could not be extracted (logs a warning in this case).
+    """
     try:
-        body = document.element.body
         release_date = _extract_stand_date_from_body(body)
         version, original_release_date = _extract_version_info_from_body(body)
 

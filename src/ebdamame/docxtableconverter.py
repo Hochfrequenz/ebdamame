@@ -22,6 +22,7 @@ from rebdhuhn.models.ebd_table import (
     STEP_NUMBER_REGEX,
 )
 
+from ._docx_utils import get_ebd_document_release_information_from_body
 from .exceptions import EbdTableNotConvertibleError, StepNumberNotFoundError
 
 _logger = logging.getLogger(__name__)
@@ -175,10 +176,19 @@ class DocxTableConverter:
         release_information: Optional[EbdDocumentReleaseInformation] = None,
     ):
         """
-        the constructor initializes the instance and reads some metadata from the (first) table header
+        the constructor initializes the instance and reads some metadata from the (first) table header.
+
+        If release_information is not provided, it will be automatically extracted from the
+        document's title page via the table's parent document reference.
         """
         self._docx_tables = docx_tables
-        self._release_information = release_information
+        if release_information is None:
+            # Extract release information from the table's parent document
+            # Tables have a reference to their parent document via table.part.element.body
+            body = first(docx_tables).part.element.body
+            self._release_information = get_ebd_document_release_information_from_body(body)
+        else:
+            self._release_information = release_information
         self._column_index_step_number: int
         self._column_index_description: int
         self._column_index_check_result: int
