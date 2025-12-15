@@ -2,13 +2,23 @@
 module contains data as we expected them to be scraped from the docx file
 """
 
+from datetime import date
+
 from rebdhuhn.models.ebd_table import (
     EbdCheckResult,
+    EbdDocumentReleaseInformation,
     EbdTable,
     EbdTableMetaData,
     EbdTableRow,
     EbdTableSubRow,
     MultiStepInstruction,
+)
+
+# Release information for the ebd20221128.docx test document
+_EBD_2022_11_28_RELEASE_INFO = EbdDocumentReleaseInformation(
+    version="3.2",
+    release_date=date(2022, 11, 28),
+    original_release_date=date(2022, 4, 29),
 )
 
 # E_0003 is pretty short
@@ -20,6 +30,7 @@ table_e0003 = EbdTable(
         section="7.39.1 E_0003_Bestellung der Aggregationsebene RZ prüfen",
         ebd_name="E_0003_Bestellung der Aggregationsebene RZ prüfen",
         role="ÜNB",
+        release_information=_EBD_2022_11_28_RELEASE_INFO,
     ),
     rows=[
         EbdTableRow(
@@ -65,6 +76,7 @@ table_e0097 = EbdTable(
         section="7.56.1 E_0097_Marktlokationen mit LF-AACL abgleichen",
         ebd_name="E_0097_Marktlokationen mit LF-AACL abgleichen",
         role="LF",
+        release_information=_EBD_2022_11_28_RELEASE_INFO,
     ),
     rows=[
         EbdTableRow(
@@ -218,6 +230,7 @@ table_e0901 = EbdTable(
         section="16.1.2 E_0901_Gegenvorschlag prüfen",
         ebd_name="E_0901_Gegenvorschlag prüfen",
         role="NB",
+        release_information=_EBD_2022_11_28_RELEASE_INFO,
     ),
     rows=[
         EbdTableRow(
@@ -293,6 +306,7 @@ table_e0453 = EbdTable(
         section="6.18.1 E_0453_Änderung prüfen",
         ebd_name="E_0453_Änderung prüfen",
         role="ÜNB",
+        release_information=_EBD_2022_11_28_RELEASE_INFO,
     ),
     rows=[
         EbdTableRow(
@@ -708,6 +722,7 @@ table_e0462 = EbdTable(
         section="6.4.1 E_0462_Prüfen, ob Anmeldung direkt ablehnbar",
         ebd_name="E_0462_Prüfen, ob Anmeldung direkt ablehnbar",
         role="NB",
+        release_information=_EBD_2022_11_28_RELEASE_INFO,
     ),
     rows=[
         EbdTableRow(
