@@ -361,8 +361,9 @@ class TestEbdamame:
                         actual = converter.convert_docx_tables_to_ebd_table()
                         # we want to ignore the ebdamame and rebdhuhn version in the snapshot test, because this causes
                         # snapshot updates at least for every dependabot PR that would otherwise pass the CI w/o probs.
-                        actual.metadata.release_information.rebdhuhn_version = None
-                        actual.metadata.release_information.ebdamame_version = None
+                        if actual.metadata.release_information is not None:
+                            actual.metadata.release_information.rebdhuhn_version = None
+                            actual.metadata.release_information.ebdamame_version = None
                         assert isinstance(actual, EbdTable)
                         assert actual == snapshot(name=ebd_key)
                 # In the long run, all these catchers shall be removed.
