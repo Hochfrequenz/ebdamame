@@ -10,7 +10,7 @@ attrs==25.4.0
     # via
     #   cattrs
     #   rebdhuhn
-cattrs==25.3.0
+cattrs==26.1.0
     # via rebdhuhn
 certifi==2026.1.4
     # via requests
