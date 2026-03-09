@@ -127,7 +127,7 @@ def enrich_paragraphs_with_sections(
     subsection_title: Optional[str] = None
     for paragraph in paragraphs:
         # since pyton-docx 1.1.2 there are type hints; seems like the style is not guaranteed to be not None
-        match paragraph.style.style_id:  # type:ignore[union-attr]
+        match paragraph.style.style_id:  # type: ignore[union-attr]
             case "berschrift1":
                 chapter = next(chapter_counter)
                 chapter_title = paragraph.text.strip()
