@@ -27,7 +27,7 @@ lxml==6.0.2
     #   python-docx
     #   rebdhuhn
     #   svgutils
-more-itertools==10.8.0
+more-itertools==11.0.1
     # via ebdamame (pyproject.toml)
 networkx==3.6.1
     # via rebdhuhn
