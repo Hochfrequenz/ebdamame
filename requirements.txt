@@ -33,7 +33,7 @@ networkx==3.6.1
     # via rebdhuhn
 pydantic==2.12.5
     # via ebdamame (pyproject.toml)
-pydantic-core==2.41.5
+pydantic-core==2.45.0
     # via pydantic
 python-docx==1.2.0
     # via ebdamame (pyproject.toml)
