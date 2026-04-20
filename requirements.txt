@@ -22,7 +22,7 @@ colorama==0.4.6
     # via click
 idna==3.11
     # via requests
-lxml==6.0.4
+lxml==6.1.0
     # via
     #   python-docx
     #   rebdhuhn
