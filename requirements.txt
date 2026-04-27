@@ -31,7 +31,7 @@ more-itertools==11.0.2
     # via ebdamame (pyproject.toml)
 networkx==3.6.1
     # via rebdhuhn
-pydantic==2.12.5
+pydantic==2.13.3
     # via ebdamame (pyproject.toml)
 pydantic-core==2.41.5
     # via pydantic
