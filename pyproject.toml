@@ -30,7 +30,7 @@ dynamic = ["readme", "version"]
 
 [project.optional-dependencies]
 coverage = [
-    "coverage==7.14.1"
+    "coverage==7.14.2"
 ]
 formatting = [
     "black==26.5.1",
@@ -47,7 +47,7 @@ test_packaging = [
     "twine==6.2.0"
 ]
 tests = [
-    "pytest==9.1.0",
+    "pytest==9.1.1",
     "pytest-subtests==0.15.0",
     "syrupy==5.3.2"
 ]
