@@ -43,7 +43,7 @@ requests==2.34.2
     # via rebdhuhn
 svgutils==0.3.4
     # via rebdhuhn
-typing-extensions==4.15.0
+typing-extensions==4.16.0
     # via
     #   cattrs
     #   pydantic
