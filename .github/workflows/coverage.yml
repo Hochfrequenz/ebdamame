@@ -15,5 +15,5 @@ jobs:
       - name: Run Tests and Record Coverage
         run: |
           uv run --group coverage coverage run -m pytest
-          uv run --group coverage coverage html --omit unittests/*
-          uv run --group coverage coverage report --fail-under 80 --omit unittests/*
+          uv run --group coverage coverage html --omit "unittests/*"
+          uv run --group coverage coverage report --fail-under 80 --omit "unittests/*"
