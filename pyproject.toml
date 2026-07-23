@@ -28,33 +28,6 @@ dependencies = [
 ]
 dynamic = ["readme", "version"]
 
-[project.optional-dependencies]
-coverage = [
-    "coverage==7.15.2"
-]
-formatting = [
-    "black==26.5.1",
-    "isort==8.0.1"
-]
-linting = [
-    "pylint==4.0.6"
-]
-spellcheck = [
-    "codespell==2.4.3"
-]
-test_packaging = [
-    "build==1.5.1",
-    "twine==6.2.0"
-]
-tests = [
-    "pytest==9.1.1",
-    "pytest-subtests==0.15.0",
-    "syrupy==5.5.3"
-]
-type_check = [
-    "mypy==2.3.0"
-]
-
 [project.urls]
 Changelog = "https://github.com/Hochfrequenz/ebdamame/releases"
 Homepage = "https://github.com/Hochfrequenz/ebdamame"
@@ -75,6 +48,42 @@ truethy-bool = true
 
 [tool.mypy]
 disable_error_code = []
+
+[dependency-groups]
+tests = [
+    "pytest==9.1.1",
+    "pytest-subtests==0.15.0",
+    "syrupy==5.5.3"
+]
+coverage = [
+    {include-group = "tests"},
+    "coverage==7.15.2"
+]
+formatting = [
+    "black==26.5.1",
+    "isort==8.0.1"
+]
+linting = [
+    "pylint==4.0.6"
+]
+spell_check = [
+    "codespell==2.4.3"
+]
+type_check = [
+    {include-group = "tests"},
+    "mypy==2.3.0"
+]
+dev = [
+    {include-group = "tests"},
+    {include-group = "linting"},
+    {include-group = "type_check"},
+    {include-group = "coverage"},
+    {include-group = "formatting"},
+    "pre-commit"
+]
+
+[tool.uv]
+default-groups = []
 
 [build-system]
 requires = ["hatchling>=1.8.0", "hatch-vcs", "hatch-fancy-pypi-readme"]

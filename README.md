@@ -68,7 +68,7 @@ _to be written_
 
 Please follow the instructions in our
 [Python Template Repository](https://github.com/Hochfrequenz/python_template_repository#how-to-use-this-repository-on-your-machine).
-And for further information, see the [Tox Repository](https://github.com/tox-dev/tox).
+And for further information, see the [uv documentation](https://docs.astral.sh/uv/).
 
 ## Contribute
 
