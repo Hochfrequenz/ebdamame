@@ -4,9 +4,10 @@ This module converts tables read from the docx file into a format that is easily
 
 import logging
 import re
+from collections.abc import Generator
 from enum import Enum
 from itertools import cycle, groupby
-from typing import Generator, Literal, Optional
+from typing import Literal
 
 from docx.table import Table, _Cell, _Row
 from more_itertools import first, first_true, last
@@ -84,7 +85,7 @@ def _get_use_cases(cells: list[_Cell], ebd_key: str) -> list[str]:
     return use_cases  # we don't return None here because we need something that has a length in the calling code
 
 
-def _read_subsequent_step_cell(cell: _Cell) -> tuple[Optional[bool], Optional[str]]:
+def _read_subsequent_step_cell(cell: _Cell) -> tuple[bool | None, str | None]:
     """
     Parses the cell that contains the outcome and the subsequent step (e.g. "ja➡5" where "5" is the subsequent step
     number). As a result we might also have no boolean values as there is no "ja" or "nein" pointing to the
@@ -143,7 +144,7 @@ class _EnhancedDocxTableLine(BaseModel):
     """
     the (sanitized) cells of the row
     """
-    multi_step_instruction_text: Optional[str] = None
+    multi_step_instruction_text: str | None = None
     """
     a multistep instruction text that may be applicable to this row (if not None)
     """
@@ -173,7 +174,7 @@ class DocxTableConverter:
         chapter: str,
         section: str,
         ebd_name: str,
-        release_information: Optional[EbdDocumentReleaseInformation] = None,
+        release_information: EbdDocumentReleaseInformation | None = None,
     ):
         """
         the constructor initializes the instance and reads some metadata from the (first) table header.
@@ -244,10 +245,11 @@ class DocxTableConverter:
         """
         result: list[_EnhancedDocxTableLine] = []
         upper_lower_iterator = cycle([_EbdSubRowPosition.UPPER, _EbdSubRowPosition.LOWER])
-        multi_step_instruction_text: Optional[str] = None
-        for table_row, sub_row_position in zip(
+        multi_step_instruction_text: str | None = None
+        for table_row, _ in zip(
             table.rows[row_offset:],
             upper_lower_iterator,
+            strict=False,
         ):
             row_cells = list(_sort_columns_in_row(table_row))
             if len(row_cells) <= 2:
@@ -284,7 +286,7 @@ class DocxTableConverter:
         The results are written into rows, sub_rows and multi_step_instructions. Those will be modified.
         """
         use_cases: list[str] = []
-        last_row_position: Optional[_EbdSubRowPosition] = None
+        last_row_position: _EbdSubRowPosition | None = None
         # todo: https://github.com/Hochfrequenz/ebdamame/issues/318 # pylint:disable=fixme
         description: str = ""
         step_number: str = ""

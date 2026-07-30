@@ -32,16 +32,22 @@ dynamic = ["readme", "version"]
 Changelog = "https://github.com/Hochfrequenz/ebdamame/releases"
 Homepage = "https://github.com/Hochfrequenz/ebdamame"
 
-[tool.black]
+[tool.ruff]
 line-length = 120
-target_version = ["py311", "py312", "py313", "py314"]
+extend-exclude = ["*.md", "version.py"]
 
-[tool.isort]
-line_length = 120
-profile = "black"
-
-[tool.pylint."MESSAGES CONTROL"]
-max-line-length = 120
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "UP", "B", "N", "PL", "RUF"]
+ignore = [
+    "PLR0913", # too-many-arguments
+    "PLR0917", # too-many-positional-arguments
+    "PLR0912", # too-many-branches
+    "PLR0915", # too-many-statements
+    "PLR2004", # magic-value-comparison
+    "RUF001",  # ambiguous-unicode-character-string
+    "RUF002",  # ambiguous-unicode-character-docstring
+    "RUF003",  # ambiguous-unicode-character-comment
+]
 
 [mypy]
 truethy-bool = true
@@ -59,12 +65,8 @@ coverage = [
     {include-group = "tests"},
     "coverage==7.15.2"
 ]
-formatting = [
-    "black==26.5.1",
-    "isort==8.0.1"
-]
-linting = [
-    "pylint==4.0.6"
+lint = [
+    "ruff==0.16.0",
 ]
 spell_check = [
     "codespell==2.4.3"
@@ -75,10 +77,9 @@ type_check = [
 ]
 dev = [
     {include-group = "tests"},
-    {include-group = "linting"},
+    {include-group = "lint"},
     {include-group = "type_check"},
     {include-group = "coverage"},
-    {include-group = "formatting"},
     "pre-commit"
 ]
 

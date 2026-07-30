@@ -10,8 +10,7 @@ jobs:
         include:
           - group: linting
             commands: |
-              uv run --group linting pylint ebdamame --ignore=version.py
-              uv run --group linting pylint main.py
+              uv run --group lint ruff check src/ebdamame main.py
           - group: type_check
             commands: |
               uv run --group type_check mypy --show-error-codes --strict src/ebdamame

@@ -27,18 +27,18 @@ from .exceptions import EbdTableNotConvertibleError, StepNumberNotFoundError, Ta
 from .models import EbdChapterInformation, EbdNoTableSection
 
 __all__ = [
+    # Models
+    "EbdChapterInformation",
+    "EbdNoTableSection",
     # Exceptions
     "EbdTableNotConvertibleError",
     "StepNumberNotFoundError",
     "TableNotFoundError",
-    # Models
-    "EbdChapterInformation",
-    "EbdNoTableSection",
     # Functions
     "get_all_ebd_keys",
     "get_document",
-    "get_ebd_docx_tables",
     "get_ebd_document_release_information",
+    "get_ebd_docx_tables",
 ]
 
 _logger = logging.getLogger(__name__)
