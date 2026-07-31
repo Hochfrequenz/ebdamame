@@ -7,8 +7,8 @@ This module is internal - do not import directly from external code.
 import itertools
 import logging
 import re
+from collections.abc import Generator, Iterable
 from datetime import date
-from typing import Generator, Iterable, Optional, Union
 
 from docx.document import Document as DocumentType
 from docx.oxml.document import CT_Body
@@ -40,7 +40,7 @@ It appears in cells like "ja  5" to indicate the subsequent step number.
 """
 
 
-def get_tables_and_paragraphs(document: DocumentType) -> Generator[Union[Table, Paragraph], None, None]:
+def get_tables_and_paragraphs(document: DocumentType) -> Generator[Table | Paragraph, None, None]:
     """
     Yields tables and paragraphs from the given document in the order in which they occur in the document.
     This is helpful because document.tables and document.paragraphs are de-coupled and give you no information which
@@ -118,13 +118,13 @@ def enrich_paragraphs_with_sections(
     """
     chapter_counter = itertools.count(start=1)
     chapter = 1
-    chapter_title: Optional[str] = None
+    chapter_title: str | None = None
     section_counter = itertools.count(start=1)
     section = 1
-    section_title: Optional[str] = None
+    section_title: str | None = None
     subsection_counter = itertools.count(start=1)
     subsection = 1
-    subsection_title: Optional[str] = None
+    subsection_title: str | None = None
     for paragraph in paragraphs:
         # since pyton-docx 1.1.2 there are type hints; seems like the style is not guaranteed to be not None
         match paragraph.style.style_id:  # type: ignore[union-attr]
@@ -162,7 +162,7 @@ _DATE_PATTERN = re.compile(r"^(?P<day>\d{2})\.(?P<month>\d{2})\.(?P<year>\d{4})$
 """Pattern to match German date format DD.MM.YYYY."""
 
 
-def _parse_german_date(date_str: str) -> Optional[date]:
+def _parse_german_date(date_str: str) -> date | None:
     """
     Parse a German date string (DD.MM.YYYY) into a date object.
     Returns None if the string doesn't match the expected format or contains invalid date values.
@@ -205,7 +205,7 @@ def _get_table_cell_texts(table_element: CT_Tbl) -> list[list[str]]:
     return rows_data
 
 
-def _extract_stand_date_from_body(body: CT_Body) -> Optional[date]:
+def _extract_stand_date_from_body(body: CT_Body) -> date | None:
     """Extract the 'Stand:' date from the document body."""
     for para_elem in body.iter(qn("w:p")):
         para_text = "".join(t_elem.text for t_elem in para_elem.iter(qn("w:t")) if t_elem.text).strip()
@@ -222,7 +222,7 @@ def _extract_stand_date_from_body(body: CT_Body) -> Optional[date]:
     return None
 
 
-def _extract_version_info_from_body(body: CT_Body) -> tuple[Optional[str], Optional[date]]:
+def _extract_version_info_from_body(body: CT_Body) -> tuple[str | None, date | None]:
     """Extract version and original release date from the metadata table in the document body."""
     for item in body.iterchildren():
         if not isinstance(item, CT_Tbl):
@@ -242,7 +242,7 @@ def _extract_version_info_from_body(body: CT_Body) -> tuple[Optional[str], Optio
     return None, None
 
 
-def get_ebd_document_release_information(document: DocumentType) -> Optional[EbdDocumentReleaseInformation]:
+def get_ebd_document_release_information(document: DocumentType) -> EbdDocumentReleaseInformation | None:
     """
     Extract release information from the title page of an EBD document.
 
@@ -262,7 +262,7 @@ def get_ebd_document_release_information(document: DocumentType) -> Optional[Ebd
 
 def get_ebd_document_release_information_from_body(
     body: CT_Body,
-) -> Optional[EbdDocumentReleaseInformation]:
+) -> EbdDocumentReleaseInformation | None:
     """
     Extract release information from the body element of an EBD document.
 

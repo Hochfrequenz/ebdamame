@@ -2,8 +2,6 @@
 Model classes for ebdamame.
 """
 
-from typing import Optional
-
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -30,8 +28,8 @@ class EbdChapterInformation(BaseModel):
     model_config = ConfigDict(frozen=True)
 
     chapter: int = Field(ge=1)
-    chapter_title: Optional[str] = None
+    chapter_title: str | None = None
     section: int = Field(ge=1)
-    section_title: Optional[str] = None
+    section_title: str | None = None
     subsection: int = Field(ge=1)
-    subsection_title: Optional[str] = None
+    subsection_title: str | None = None
