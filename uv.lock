@@ -977,7 +977,7 @@ wheels = [
 
 [[package]]
 name = "rebdhuhn"
-version = "1.2.0"
+version = "1.2.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "efoli" },
@@ -987,9 +987,9 @@ dependencies = [
     { name = "requests" },
     { name = "svgutils" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/eb/d0/c9e66dce8dd5ae86fcbed013557a231059b5bfe1f90e087abe66d6d2f198/rebdhuhn-1.2.0.tar.gz", hash = "sha256:1cf19824261186188959c59c55be330330d9b8ccf2e3c4d1f80138c6937b9d9b", size = 69028, upload-time = "2026-04-02T11:31:44.292Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/1f/3d/13b97d50271f9b009d0c2522d9c86e833884dff8c632e8c227029e8bbc6f/rebdhuhn-1.2.1.tar.gz", hash = "sha256:c87bc289f38e274fa97c982cc84f1da5af74dee459a65df2fa7470a3737d2c50", size = 159708, upload-time = "2026-07-27T13:02:33.322Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ec/8c/9d57f8aec953044ec8664e1ac10ebcb81b0bf977cea93bed9bf3793fa35b/rebdhuhn-1.2.0-py3-none-any.whl", hash = "sha256:362324718fe6d1e18479f1d2603fe498e20f6f7eac9428a0c976baf13f341173", size = 60657, upload-time = "2026-04-02T11:31:42.77Z" },
+    { url = "https://files.pythonhosted.org/packages/e7/d0/f13875777a9518fb0ca55d0d1040a99f7a726d807715ab48bfa2733ee41b/rebdhuhn-1.2.1-py3-none-any.whl", hash = "sha256:63b04bb2fd6878b01c2500a0756fadb0ebde1af6957ba01711dcbd63f4755f80", size = 60414, upload-time = "2026-07-27T13:02:32.305Z" },
 ]
 
 [[package]]
