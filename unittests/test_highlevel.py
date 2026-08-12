@@ -336,7 +336,7 @@ class TestEbdamame:
         # different approach, called pytest-subtests: https://github.com/pytest-dev/pytest-subtests
         for ebd_key, path in get_ebd_keys_and_files:
             with subtests.test(ebd_key, key=ebd_key, file=path.name):
-                # this requires pytest-subtests to be installed (see tox.ini)
+                # this requires pytest-subtests to be installed (see the `tests` dependency group in pyproject.toml)
                 try:
                     docx_tables = get_ebd_docx_tables(path, ebd_key=ebd_key)
                     if isinstance(docx_tables, EbdNoTableSection):
