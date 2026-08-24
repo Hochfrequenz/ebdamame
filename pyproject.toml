@@ -73,7 +73,7 @@ spell_check = [
 ]
 type_check = [
     {include-group = "tests"},
-    "mypy==2.3.0"
+    "mypy==2.3.1"
 ]
 dev = [
     {include-group = "tests"},
