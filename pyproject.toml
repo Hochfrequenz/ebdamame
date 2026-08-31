@@ -59,7 +59,7 @@ disable_error_code = []
 tests = [
     "pytest==9.1.1",
     "pytest-subtests==0.15.0",
-    "syrupy==5.5.3"
+    "syrupy==6.0.0"
 ]
 coverage = [
     {include-group = "tests"},
