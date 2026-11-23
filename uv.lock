@@ -430,14 +430,14 @@ type-check = [
 
 [[package]]
 name = "efoli"
-version = "2.3.0"
+version = "2.4.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "pytz" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/1a/ab/99cfdb47005a1c5c8048cd7969f7fba8e7a449de86d26aa7fcb6ff54565c/efoli-2.3.0.tar.gz", hash = "sha256:30b99b3fdf568c336ad955372410b77846154df939a4264ea542c533dc44d713", size = 11391, upload-time = "2026-04-04T11:35:34.04Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/37/b1/2571c581183459aef4ab234fb96f434c33559181257deaff55bdc7811a9e/efoli-2.4.2.tar.gz", hash = "sha256:63c30d7bb26e08638b820cf7a21ad7d83b7c69a2f5fddbb0b01b92eff525af0a", size = 70582, upload-time = "2026-10-26T22:27:20.065Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ee/5f/21d964c54215e37528b45eb10cb9fc164d570fec062b2eab8a54ec990cd4/efoli-2.3.0-py3-none-any.whl", hash = "sha256:c61102adc0068d452bf374e587b8b7e365494f7087685dd54ec05dcf177acea3", size = 6713, upload-time = "2026-04-04T11:35:32.461Z" },
+    { url = "https://files.pythonhosted.org/packages/54/96/8883a209eac282e720ff9d31c3ec8ec4824dd047312917a57f93bbe6b405/efoli-2.4.2-py3-none-any.whl", hash = "sha256:c2927f06f20a0d4ad699f637bf92324be510d41f49a33adc0563b78c2fbd10cb", size = 7134, upload-time = "2026-10-26T22:27:19.033Z" },
 ]
 
 [[package]]
@@ -1149,7 +1149,7 @@ wheels = [
 
 [[package]]
 name = "rebdhuhn"
-version = "1.2.1"
+version = "1.2.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "efoli" },
@@ -1159,9 +1159,9 @@ dependencies = [
     { name = "requests" },
     { name = "svgutils" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/1f/3d/13b97d50271f9b009d0c2522d9c86e833884dff8c632e8c227029e8bbc6f/rebdhuhn-1.2.1.tar.gz", hash = "sha256:c87bc289f38e274fa97c982cc84f1da5af74dee459a65df2fa7470a3737d2c50", size = 159708, upload-time = "2026-07-27T13:02:33.322Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/a3/45/d87f8161e731004bf1e8ecaa64d3f016ff54fb99c4ab4e7e1c2f89afc27d/rebdhuhn-1.2.2.tar.gz", hash = "sha256:c123836d94bcca0b073976ddf471be2d01c60a4b4316998e92c9f58db0d8ae1b", size = 158628, upload-time = "2026-10-26T22:27:45.022Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/e7/d0/f13875777a9518fb0ca55d0d1040a99f7a726d807715ab48bfa2733ee41b/rebdhuhn-1.2.1-py3-none-any.whl", hash = "sha256:63b04bb2fd6878b01c2500a0756fadb0ebde1af6957ba01711dcbd63f4755f80", size = 60414, upload-time = "2026-07-27T13:02:32.305Z" },
+    { url = "https://files.pythonhosted.org/packages/45/bb/e9ca7560ff45d209651487c640b812085f5588e0400738f069a0b53714f8/rebdhuhn-1.2.2-py3-none-any.whl", hash = "sha256:3265a1555e25e9778af6b9c4a6503f76a9e9fe0e45d68bed79619dc95c669a9d", size = 60298, upload-time = "2026-10-26T22:27:43.841Z" },
 ]
 
 [[package]]
